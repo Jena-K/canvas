@@ -1,0 +1,40 @@
+---
+import Flow from './Flow.astro';
+
+type Step = string | { label: string; sub?: string; outline?: boolean };
+
+interface Props {
+	lanes: { title: string; steps: Step[]; plain?: boolean }[];
+}
+
+const { lanes } = Astro.props;
+---
+
+<div class="lanes">
+	{
+		lanes.map((lane) => (
+			<section class="lane">
+				<p class="lane-title">{lane.title}</p>
+				<Flow steps={lane.steps} plain={lane.plain} />
+			</section>
+		))
+	}
+</div>
+
+<style>
+	.lanes {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 16px;
+	}
+	.lane {
+		padding: 12px;
+		border: 1px dashed var(--line);
+		border-left: 3px solid var(--ink);
+	}
+	.lane-title {
+		margin-bottom: 10px;
+		font-size: 14px;
+		font-weight: 600;
+	}
+</style>

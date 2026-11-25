@@ -1,0 +1,57 @@
+---
+title: Tynt
+tagline: AI 사진·프로필 생성 서비스
+summary: 신규 AI 미디어(사진·프로필) 생성 서비스. 사업 초기 타겟 분석·기획부터 출시·운영까지 백엔드 설계·구축
+company: 라이언로켓
+role: Backend Developer
+period:
+  start: 2025-08
+  end: 2026-05
+stack:
+  - Python
+  - FastAPI
+  - Celery
+  - PostgreSQL
+  - Redis
+  - AWS S3
+  - CloudFront(CDN)
+  - Docker
+  - React
+  - Flutter
+  - GA4/GTM
+  - Clarity
+order: 2
+---
+
+{/* Source: resume/resume_build/sections/05_projects.md, Tynt. Keep wording in sync with that file. */}
+{/* ev (summary): backend repo not on this machine; role user-confirmed 2026-10-22 */}
+
+## 기여
+
+### 사진 → 프로필 생성 파이프라인을 FastAPI·Celery 비동기 단계(배경 제거 → 캐릭터 시트 → 레이아웃 보정)로 설계·구축
+
+{/* ev: tynt_ai_backoffice src/api/pipelineTest.ts; tynt_ai_frontend_v2 BULK_POLLING_API_SPEC.md (6de07195a, 433abf4bd) */}
+
+- SSE와 자산별 개별 폴링으로 나뉘어 있던 상태 조회를 폴링으로 일원화하고, 최대 50건 배치 조회 API(bulk-status)로 통합
+- **자산마다 3초 간격이던 상태 조회 요청을 최대 1/50로 축소**
+
+### Aura(크레딧) 요율과 쿠폰 정책을 운영에서 직접 조정하는 결제 구조 설계
+
+{/* ev: tynt_ai_backoffice docs/BE_RESPONSE_AURA_RATES.md, docs/coupon-conventions.md */}
+
+- 사용 요율을 DB 테이블로 관리해 배포 없이 가격을 바꾸고, 다국어(ko/en/ja) 응답 지원
+- 쿠폰 발급 4종(코드·직접·일괄·자동)과 자동 지급 조건(가입·첫 결제)을 백오피스에서 설정
+- **가격·프로모션 변경을 개발 배포 없이 운영에서 처리**
+
+### 행동·유입 데이터(GA4·GTM·Clarity)로 "광고 유입 대비 스크롤 이탈" 가설을 수립
+
+- 웹·앱 공통 이벤트 파라미터와 Clarity 5단계 퍼널, 운영 분석 API 11종(리텐션 코호트·첫 결제까지 일수 등)으로 측정 기반 구축
+- 가설에 기반해 히어로 섹션 개편을 주도하고 기획·마케팅에 데이터 근거로 방향 제시
+- **평균 스크롤 깊이 2배 이상 증가**
+
+### 운영 백오피스에 직무별 RBAC 기반 접근 제어 체계를 도입
+
+{/* ev: tynt_ai_backoffice 0ad566b17, scripts/seed_content_manager.py */}
+
+- 메뉴 권한 29종·6개 그룹의 권한 매트릭스로 역할을 만들어 담당 부서에 운영을 위임하고, 게시된 항목의 수정 권한은 별도로 분리
+- **운영 변경의 개발팀 의존을 감소시켜 대응 속도·CS 비용 개선**

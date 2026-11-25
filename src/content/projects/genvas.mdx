@@ -21,6 +21,11 @@ stack:
 order: 1
 ---
 
+import Figure from '../../components/diagram/Figure.astro';
+import Flow from '../../components/diagram/Flow.astro';
+import Lanes from '../../components/diagram/Lanes.astro';
+import Metrics from '../../components/diagram/Metrics.astro';
+
 {/* Source: resume/resume_build/sections/05_projects.md, Genvas. Keep wording in sync with that file. */}
 
 ## AI 생성 파이프라인
@@ -31,12 +36,30 @@ order: 1
 - 최종 상태만 덮어쓰면 어느 단계에서 왜 실패했는지 남지 않아, 태스크 단위 로그와 상태 변경 이력을 쌓는 이벤트 기반 상태 추적으로 재구축 {/* ev: assumed rationale (recommended, no evidence; user-approved 2026-10-22); celery_task_logs = genvas-renewal-api app/core/celery/adapter.py */}
 - 원인 불명의 실패를 단계 단위로 추적·조치해 **생성 실패율 약 10%→1%대**
 
+<Figure n="01" title="생성 단계를 워커 체인으로 격리하고 단계마다 상태를 기록">
+	<Flow label="비동기 워커 체인" steps={['마네킹', '캐릭터', '업스케일', '선화', '채색', '얼굴보정']} />
+	<Flow label="단계마다 남기는 기록" plain steps={[{ label: '태스크 단위 로그', outline: true }, { label: '상태 변경 이력', outline: true }]} />
+	<Metrics items={[{ label: 'BE·Worker 간 연동 호출', value: '6 → 2단계' }, { label: '생성 실패율', value: '약 10% → 1%대' }]} />
+</Figure>
+
 ### 외부 생성 모델 호출을 테마별 설정(model_config: 태스크·큐·파라미터)과 공통 Celery 어댑터로 추상화
 
 {/* ev: genvas-renewal-api create_larobanana_image.py, app/core/celery/adapter.py (4e8cb9fe2) */}
 
 - 입출력 경로·콜백을 런타임에 치환하는 설정 스키마로 벤더별 호출 규약을 표준화하고 외부 장애를 서비스와 격리
 - **코드 수정 없이 설정 등록만으로 신규 모델·테마 추가, 연동 변경 작업을 수일 → 수시간 규모로 단축**
+
+<Figure n="02" title="외부 생성 모델 호출을 설정과 공통 어댑터로 추상화">
+	<Flow
+		steps={[
+			{ label: '테마별 설정', sub: '태스크·큐·파라미터' },
+			{ label: '공통 Celery 어댑터', sub: '입출력 경로·콜백을 런타임에 치환' },
+			{ label: '외부 생성 모델', sub: 'Grok·Nano Banana·Replicate·Fal' },
+		]}
+	/>
+	<Flow plain steps={[{ label: '벤더별 호출 규약 표준화', outline: true }, { label: '외부 장애를 서비스와 격리', outline: true }]} />
+	<Metrics items={[{ label: '연동 변경 작업', value: '수일 → 수시간' }]} />
+</Figure>
 
 ### 학습/생성 트래픽을 큐 라우팅으로 분리하고 중앙 오케스트레이터가 분산 워커를 조율하는 구조로 전환
 
@@ -47,6 +70,20 @@ order: 1
 - Grafana 지표(처리량·지연·실패율)를 기준으로 워커 자원을 재분배
 - **학습 부하가 몰려도 생성 요청이 학습 작업 뒤에 밀리지 않는 처리 구조 확보**
 
+<Figure n="03" title="학습과 생성 트래픽을 큐로 분리">
+	<Flow steps={['작업 요청', '큐 라우팅']} />
+	<Lanes
+		lanes={[
+			{ title: '학습 큐', steps: [{ label: '캐릭터 생성', sub: 'Replicate variation' }, '학습·재학습', '분산 워커'] },
+			{ title: '생성 큐', steps: ['생성 요청', '분산 워커'] },
+		]}
+	/>
+	<Flow
+		label="중앙 오케스트레이터"
+		steps={[{ label: 'Grafana 지표', sub: '처리량·지연·실패율', outline: true }, { label: '워커 자원 재분배', outline: true }]}
+	/>
+</Figure>
+
 ## 결제·크레딧
 
 ### 결제 시도와 완료가 한 테이블에 섞여 감사 추적이 어렵던 구조를 가변 결제 시도와 불변 완료 기록으로 분리
@@ -56,6 +93,18 @@ order: 1
 - 크레딧 지급을 멱등 처리하고, 리소스 생성 → 태스크 전송 성공 → 크레딧 차감 순서로 브로커 장애 시 미과금·생성 실패 시 환불
 - 구독 취소 시 결제사(PayPal·StepPay) 쪽 갱신까지 중단하고, 구독 이벤트 15종 이력과 연속 갱신 실패 3회 자동 취소 적용
 - **PROD 거래 302건·완료 110건 이관, 결제 DB를 메인 DB로 통합(2→1)**
+
+<Figure n="04" title="과금 순서와 결제 기록 분리">
+	<Flow label="과금 순서" steps={['리소스 생성', '태스크 전송 성공', '크레딧 차감']} />
+	<Lanes
+		lanes={[
+			{ title: '브로커 장애', steps: [{ label: '미과금', outline: true }] },
+			{ title: '생성 실패', steps: [{ label: '환불', outline: true }] },
+		]}
+	/>
+	<Flow label="결제 기록" steps={[{ label: '결제 시도', sub: '가변' }, { label: '완료 기록', sub: '불변' }]} />
+	<Metrics items={[{ label: 'PROD 이관', value: '거래 302건·완료 110건' }, { label: '결제 DB', value: '2 → 1' }]} />
+</Figure>
 
 ## 아키텍처·인프라
 

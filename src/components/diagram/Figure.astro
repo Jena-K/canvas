@@ -1,0 +1,45 @@
+---
+interface Props {
+	n: string;
+	title: string;
+}
+
+const { n, title } = Astro.props;
+---
+
+<figure class="diagram">
+	<figcaption><span class="num">FIG {n}</span>{title}</figcaption>
+	<div class="canvas"><slot /></div>
+</figure>
+
+<style>
+	.diagram {
+		margin: 32px 0 0;
+		border: 1px dashed var(--ink);
+		background: var(--paper);
+	}
+	figcaption {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 14px;
+		border-bottom: 1px dashed var(--ink);
+		font-size: 14px;
+		font-weight: 500;
+	}
+	.num {
+		background: var(--ink);
+		color: var(--paper);
+		padding: 0 8px;
+		font-family: var(--font-mono);
+		font-size: 12px;
+		letter-spacing: 0.1em;
+		line-height: 22px;
+		white-space: nowrap;
+	}
+	.canvas {
+		display: grid;
+		gap: 20px;
+		padding: 24px 20px;
+	}
+</style>
