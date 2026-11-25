@@ -18,6 +18,7 @@ const groups = taskGroups(headings);
 ---
 
 <Base title={`${title} · ${tagline} | 김용훈`} description={summary}>
+	<div class="rail" aria-hidden="true"><span></span></div>
 	<section class="hero">
 		<div>
 			<p class="kicker">
@@ -178,6 +179,45 @@ const groups = taskGroups(headings);
 
 	.back {
 		padding: 96px var(--pad) 0;
+	}
+
+	/* Reading progress, driven by the scroll position alone (no script). */
+	.rail {
+		display: none;
+	}
+	@supports (animation-timeline: scroll()) {
+		@media (prefers-reduced-motion: no-preference) and (min-width: 961px) {
+			.rail {
+				display: block;
+				position: fixed;
+				top: var(--header-h);
+				bottom: 0;
+				right: calc(var(--pad) / 2);
+				width: 1px;
+				background: var(--line);
+			}
+			.rail span {
+				display: block;
+				height: 100%;
+				background: var(--ink);
+				transform-origin: top;
+				animation-name: rail-fill;
+				animation-timing-function: linear;
+				animation-fill-mode: both;
+			}
+			/* Separate rule: inside one rule the minifier folds this into the animation shorthand, which Chrome drops. */
+			.rail > span {
+				animation-timeline: scroll(root);
+			}
+		}
+	}
+	@keyframes rail-fill {
+		from {
+			transform: scaleY(0);
+		}
+		to {
+			transform: scaleY(1);
+		}
 	}
 
 	@media (max-width: 960px) {

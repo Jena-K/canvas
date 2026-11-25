@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Hero from '../components/Hero.astro';
 import ProjectIndex from '../components/ProjectIndex.astro';
+import Raster from '../components/Raster.astro';
 import Tag from '../components/Tag.astro';
 import { profile } from '../data/profile';
 import Base from '../layouts/Base.astro';
@@ -19,6 +20,7 @@ const rows = await Promise.all(
 
 <Base>
 	<Hero projectTitles={rows.map((row) => row.title)} />
+	<Raster text="BACKEND" />
 	<ProjectIndex rows={rows} />
 
 	<section id="about" class="section">

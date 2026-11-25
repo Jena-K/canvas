@@ -85,7 +85,61 @@ let number = 0;
 		overflow: hidden;
 	}
 	a:hover,
-	a:hover .count {
+	a:hover .count,
+	a[aria-current] {
 		color: var(--ink);
 	}
+	/* The active task swaps its number for a filled square, the same marker as a result bullet. */
+	.tasks a[aria-current] .num {
+		position: relative;
+		color: transparent;
+	}
+	.tasks a[aria-current] .num::before {
+		content: '';
+		position: absolute;
+		left: 2px;
+		top: calc(0.725em - 3px);
+		width: 6px;
+		height: 6px;
+		background: var(--ink);
+	}
 </style>
+
+<script>
+	/*
+	 * Mark the heading the reader is in: the last one whose top has passed under the sticky header.
+	 * At the end of the page the last headings can never reach the header, so there the last visible one wins.
+	 */
+	const links = [...document.querySelectorAll<HTMLAnchorElement>('.task-index a[href^="#"]')];
+	const targets = links
+		.map((link) => ({ link, heading: document.getElementById(decodeURIComponent(link.hash.slice(1))) }))
+		.filter((item): item is { link: HTMLAnchorElement; heading: HTMLElement } => item.heading !== null);
+	const offset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) + 24 || 124;
+	let queued = false;
+
+	function update() {
+		queued = false;
+		const atEnd = innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
+		const line = atEnd ? innerHeight : offset;
+		let current: (typeof targets)[number] | undefined;
+		for (const target of targets) {
+			if (target.heading.getBoundingClientRect().top <= line) current = target;
+		}
+		const area = current?.link.closest('.areas > li')?.querySelector<HTMLAnchorElement>('.area');
+		for (const { link } of targets) {
+			if (link === current?.link || link === area) link.setAttribute('aria-current', 'location');
+			else link.removeAttribute('aria-current');
+		}
+	}
+
+	addEventListener(
+		'scroll',
+		() => {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(update);
+		},
+		{ passive: true },
+	);
+	update();
+</script>

@@ -1,0 +1,136 @@
+---
+/*
+ * A word drawn as a grid of square dots, the same grid as the page background but in ink.
+ * Decorative only: the canvas is aria-hidden and the band keeps its height before the script runs.
+ */
+interface Props {
+	text: string;
+}
+
+const { text } = Astro.props;
+---
+
+<div class="raster" aria-hidden="true" data-text={text}>
+	<canvas></canvas>
+</div>
+
+<style>
+	.raster {
+		height: clamp(48px, 13vw, 200px);
+		margin: 96px var(--pad) 0;
+	}
+	canvas {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+	@media (max-width: 720px) {
+		.raster {
+			margin-top: 56px;
+		}
+	}
+</style>
+
+<script>
+	const FONT = '"Instrument Sans", "Pretendard Variable", sans-serif';
+	const REVEAL_MS = 900;
+	const DOT = 2;
+
+	type Dot = { x: number; y: number; delay: number };
+
+	function sample(text: string, width: number, height: number, step: number): Dot[] {
+		const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true })!;
+		probe.font = `700 100px ${FONT}`;
+		const box = probe.measureText(text);
+		const inkWidth = box.actualBoundingBoxLeft + box.actualBoundingBoxRight;
+		const inkHeight = box.actualBoundingBoxAscent + box.actualBoundingBoxDescent;
+		const size = Math.min(width / inkWidth, height / inkHeight) * 100;
+
+		probe.canvas.width = width;
+		probe.canvas.height = height;
+		probe.font = `700 ${size}px ${FONT}`;
+		const fit = probe.measureText(text);
+		const left = (width - (fit.actualBoundingBoxLeft + fit.actualBoundingBoxRight)) / 2 + fit.actualBoundingBoxLeft;
+		const top = (height - (fit.actualBoundingBoxAscent + fit.actualBoundingBoxDescent)) / 2 + fit.actualBoundingBoxAscent;
+		probe.fillText(text, left, top);
+
+		const alpha = probe.getImageData(0, 0, width, height).data;
+		const dots: Dot[] = [];
+		for (let y = 0; y < height; y += step) {
+			for (let x = 0; x < width; x += step) {
+				const cx = Math.min(x + (step >> 1), width - 1);
+				const cy = Math.min(y + (step >> 1), height - 1);
+				if (alpha[(cy * width + cx) * 4 + 3] > 127) dots.push({ x, y, delay: Math.random() * REVEAL_MS });
+			}
+		}
+		return dots;
+	}
+
+	function mount(wrap: HTMLElement) {
+		const canvas = wrap.querySelector('canvas')!;
+		const context = canvas.getContext('2d')!;
+		const text = wrap.dataset.text ?? '';
+		const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		let dots: Dot[] = [];
+		let shown = still;
+
+		function layout() {
+			const width = Math.floor(wrap.clientWidth);
+			const height = Math.floor(wrap.clientHeight);
+			const step = width < 720 ? 3 : 4;
+			const ratio = devicePixelRatio || 1;
+			canvas.width = width * ratio;
+			canvas.height = height * ratio;
+			context.setTransform(ratio, 0, 0, ratio, 0, 0);
+			context.fillStyle = getComputedStyle(wrap).color;
+			dots = sample(text, width, height, step);
+		}
+
+		function draw(elapsed: number) {
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			for (const point of dots) {
+				if (point.delay <= elapsed) context.fillRect(point.x, point.y, DOT, DOT);
+			}
+		}
+
+		function play() {
+			const start = performance.now();
+			const frame = (now: number) => {
+				const elapsed = now - start;
+				draw(elapsed);
+				if (elapsed < REVEAL_MS) requestAnimationFrame(frame);
+			};
+			requestAnimationFrame(frame);
+		}
+
+		layout();
+		if (shown) draw(Infinity);
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				observer.disconnect();
+				shown = true;
+				play();
+			},
+			{ rootMargin: '0px 0px -10% 0px' },
+		);
+		if (!still) observer.observe(wrap);
+
+		let timer = 0;
+		let lastWidth = wrap.clientWidth;
+		new ResizeObserver(() => {
+			if (wrap.clientWidth === lastWidth) return;
+			lastWidth = wrap.clientWidth;
+			clearTimeout(timer);
+			timer = window.setTimeout(() => {
+				layout();
+				if (shown) draw(Infinity);
+			}, 150);
+		}).observe(wrap);
+	}
+
+	const wraps = document.querySelectorAll<HTMLElement>('.raster');
+	const texts = [...wraps].map((wrap) => wrap.dataset.text).join('');
+	document.fonts.load(`700 100px ${FONT}`, texts).finally(() => wraps.forEach(mount));
+</script>
