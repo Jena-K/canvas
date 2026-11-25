@@ -102,3 +102,18 @@ p {
 	clip-path: inset(50%);
 	white-space: nowrap;
 }
+
+.section-title {
+	font-size: var(--text-h2);
+	font-weight: 700;
+	line-height: 1.1;
+	letter-spacing: var(--tracking-tight);
+}
+.section-title span {
+	margin-left: 12px;
+	font-family: var(--font-mono);
+	font-size: 0.4em;
+	font-weight: 400;
+	letter-spacing: 0.08em;
+	vertical-align: middle;
+}
