@@ -1,0 +1,172 @@
+---
+import Tag from './Tag.astro';
+import { formatPeriod, type TaskGroup } from '../utils/project';
+import { url } from '../utils/url';
+
+export interface ProjectRow {
+	id: string;
+	title: string;
+	tagline: string;
+	period: { start: string; end: string | null };
+	groups: TaskGroup[];
+	tasks: number;
+}
+
+interface Props {
+	rows: ProjectRow[];
+}
+
+const { rows } = Astro.props;
+const totalTasks = rows.reduce((sum, row) => sum + row.tasks, 0);
+---
+
+<section id="projects" class="section">
+	<div>
+		<h2 class="section-title">대표 프로젝트<span>{rows.length} PROJECTS</span></h2>
+		<p class="meta label">{rows.length} projects · {totalTasks} tasks</p>
+		{
+			rows.map((row) => (
+				<article class="row">
+					<div>
+						<p class="label">
+							{row.title} · {row.tasks} tasks · {formatPeriod(row.period)}
+						</p>
+						<h3>
+							<a href={url(`/projects/${row.id}/`)}>{row.tagline}</a>
+						</h3>
+						<Tag href={url(`/projects/${row.id}/`)} label={row.id} />
+					</div>
+					<ul class="areas">
+						{row.groups.map(({ area, tasks }) => (
+							<li>
+								<a href={url(`/projects/${row.id}/#${area.slug}`)}>
+									{area.text}
+									<span>{tasks.length}</span>
+								</a>
+							</li>
+						))}
+					</ul>
+				</article>
+			))
+		}
+	</div>
+	<aside>
+		<p class="head label"><span>Projects</span><span>Tasks</span></p>
+		<ol>
+			{
+				rows.map((row) => (
+					<li>
+						<a href={url(`/projects/${row.id}/`)}>
+							{row.title}
+							<span>{row.tasks}</span>
+						</a>
+					</li>
+				))
+			}
+		</ol>
+	</aside>
+</section>
+
+<style>
+	.section {
+		display: grid;
+		grid-template-columns: 1fr var(--aside);
+		column-gap: var(--gutter);
+		padding: 140px var(--pad) 0;
+	}
+	.meta {
+		margin-top: 28px;
+		padding-bottom: 12px;
+		border-bottom: 1px solid var(--line);
+	}
+	.row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 40px;
+		padding: 48px 0;
+		border-bottom: 1px dashed var(--line);
+	}
+	h3 {
+		margin: 10px 0 16px;
+		font-size: var(--text-h3);
+		font-weight: 650;
+		line-height: 1.3;
+		letter-spacing: -0.02em;
+	}
+	h3 a:hover {
+		text-decoration: underline;
+		text-underline-offset: 6px;
+		text-decoration-thickness: 2px;
+	}
+	.areas {
+		display: grid;
+		align-content: start;
+		gap: 6px;
+		margin: 0;
+		padding: 10px;
+		list-style: none;
+		border: 1px dashed var(--ink);
+	}
+	.areas a {
+		display: flex;
+		justify-content: space-between;
+		padding: 8px 12px;
+		background: var(--ink);
+		color: var(--paper);
+		font-size: 14px;
+	}
+	.areas a:hover {
+		background: var(--ink-2);
+	}
+	.areas span,
+	aside li span {
+		font-family: var(--font-mono);
+		font-size: var(--text-meta);
+	}
+	aside {
+		position: sticky;
+		top: var(--header-h);
+		align-self: start;
+	}
+	.head {
+		display: flex;
+		justify-content: space-between;
+		padding-bottom: 12px;
+		border-bottom: 1px solid var(--line);
+	}
+	aside ol {
+		display: grid;
+		gap: 12px;
+		margin: 20px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	aside li a {
+		display: flex;
+		justify-content: space-between;
+	}
+	aside li span {
+		color: var(--muted);
+	}
+
+	@media (max-width: 960px) {
+		.section,
+		.row {
+			grid-template-columns: 1fr;
+		}
+		.row {
+			gap: 20px;
+		}
+		aside {
+			display: none;
+		}
+	}
+	@media (max-width: 720px) {
+		.section {
+			padding-top: 96px;
+		}
+		h3 {
+			font-size: 22px;
+		}
+	}
+</style>
