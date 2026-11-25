@@ -60,7 +60,7 @@ PR 0  프로토타입 (머지 없음, 버리는 코드)
 | 1 | 0 | `src/content/blog/`, `src/pages/`, `src/layouts/`, `src/assets/`, `src/consts.ts`, `astro.config.mjs`, `scripts/check-links.mjs`, `package.json` | 아니오 |
 | 2 | 1 | `src/styles/`, `src/components/`, `src/layouts/Base.astro`, `astro.config.mjs`의 `fonts`, `src/assets/fonts/` | 예 |
 | 3 | 2 | `src/content.config.ts`, `src/content/projects/genvas.mdx`, `src/utils/project.ts`, `src/pages/projects/[slug].astro`, `src/components/TaskIndex.astro` | 아니오 |
-| 4 | 3 | `src/pages/index.astro`, `src/components/Hero.astro`, `src/components/ProjectIndex.astro`, `src/data/profile.ts` | 예 |
+| 4 | 3 | `src/pages/index.astro`, `src/components/Hero.astro`, `src/components/ProjectIndex.astro`, `src/data/profile.ts`, `src/styles/global.css` | 예 |
 | 5 | 3 | `src/content/projects/*.mdx`, `src/components/diagram/` | 예, 그림과 내용 |
 | 6 | 4 | `src/scripts/`, `src/components/Raster.astro`, `src/layouts/Base.astro`, `package.json` | 예 |
 | 7 | 5, 6 | `src/components/BaseHead.astro`, `public/`, 각 컴포넌트의 반응형 스타일 | 아니오 |
@@ -184,18 +184,18 @@ kovalseo의 글꼴은 한글이 없다. 한글 제목이 큰 글씨에서 어떻
 
 레퍼런스의 첫 화면 구성을 포트폴리오 내용으로 채운다.
 
-- [ ] 의존: PR 3
-- [ ] 수정 파일: 위 표의 PR 4 범위
-- [ ] 바꾸는 것
-  - `Hero.astro`: 검은 칩(`BACKEND`) + 모노 대문자 한 줄 + 큰 제목 한 줄 + 오른쪽 열 요약 3줄. 문구는 `sections/00_profile.md`의 포지셔닝에서 가져온다.
-  - `ProjectIndex.astro`: 프로젝트를 `order` 순서로 나열한다. 각 행에 이름, 한 줄 소개, 기간, 과제 개수를 보인다. 과제 개수는 PR 3의 제목 추출 결과에서 센다.
-  - `src/data/profile.ts`: 이름, 한 줄 소개, 자기소개, 경력 목록, 기술 목록, 이메일, GitHub. 원본은 `sections/00_profile.md`, `02_experience.md`, `03_technical_skills.md`다.
-  - 경력 요약, 기술, 연락처 구역. 연락처는 이메일과 GitHub만 싣는다(사용자 결정, 2026-11-25). `00_profile.md`의 전화번호는 공개 사이트에 넣지 않는다.
-- [ ] 보이는 결과: 홈 첫 화면에 히어로가, 스크롤하면 프로젝트 목록과 경력이 보인다.
-- [ ] 검증
-  - [ ] 단위: 세 명령 통과
-  - [ ] 실물: 1512 폭 첫 화면에 히어로 제목이 한 줄로 들어간다. 프로젝트 행을 누르면 상세로 간다. 390 폭에서 오른쪽 요약이 제목 아래로 내려가고 가로 스크롤이 없다.
-  - [ ] 성능: 홈 JS 0 KB, Lighthouse 성능 점수가 PR 1 기준보다 5점 넘게 떨어지면 실패
+- [x] 의존: PR 3
+- [x] 수정 파일: `src/pages/index.astro`, `src/components/Hero.astro`, `src/components/ProjectIndex.astro`, `src/data/profile.ts`, `src/styles/global.css`(`.section-title`)
+- [x] 바꾸는 것
+  - `src/data/profile.ts`: 한 줄 소개, 자기소개 5문단, 경력 4곳, 기술 8줄, 이메일, GitHub. 원본은 `sections/00_profile.md`, `02_experience.md`, `03_technical_skills.md`이고 문장을 그대로 옮겼다. 자기소개의 굵은 글씨만 뺐다.
+  - `Hero.astro`: 검은 칩(`PYTHON BACKEND`) + 한글 한 줄("제품·운영 요구를") + 두 줄 제목 + 오른쪽 요약 + `/projects` 줄과 버튼. 한글 줄은 PR 0의 규칙대로 모노 글꼴이 아니라 본문 글꼴이다.
+  - `ProjectIndex.astro`: 프로젝트마다 이름, 과제 수, 기간, 한 줄 소개, 영역별 과제 수 상자를 보인다. 과제 수는 PR 3의 `taskGroups()`로 센다. 오른쪽에 프로젝트 목록과 과제 수를 고정한다.
+  - `#about`: 자기소개, 경력, 기술. `#contact`: 큰 이메일 링크와 이메일·GitHub 태그. 이메일만 싣고 전화번호는 싣지 않는다(사용자 결정, 2026-11-25).
+- [x] 보이는 결과: 홈 첫 화면에 히어로가 보이고, 스크롤하면 프로젝트, 소개, 연락 구역이 차례로 나온다.
+- [x] 검증
+  - [x] 단위: 세 명령 통과(내부 링크 37개)
+  - [x] 실물: 계획의 "제목이 한 줄로 들어간다"는 PR 0에서 두 줄 구성으로 정해져서 "히어로 전체가 첫 화면에 들어간다"로 바꿨다. 1512 폭에서 제목 두 줄, `/projects` 줄 아래 끝 538px로 첫 화면(873px) 안에 들어간다. 390 폭에서 제목 세 줄, 아래 끝 569px(844px 안). 헤더의 `/ about`을 누르면 `#about`이 헤더 바로 아래(y=100)에 온다. 프로젝트 제목을 누르면 `/canvas/projects/genvas/`로 간다. 페이지에 `010-`이 없고 `mailto:` 링크가 있다. 두 폭 모두 콘솔 오류 0개, 가로 넘침 없음. 캡처는 `.scratch/verify/pr-4/`에 있다.
+  - [x] 성능: Lighthouse 12, 홈. 데스크톱과 모바일 기본 프리셋 모두 성능 100, 접근성 100, JS 0 B, CLS 0. 글꼴 327.1 KB(13개), 전체 351.1 KB, LCP 0.7 s(데스크톱), 1.4 s(모바일). PR 1 기준(100)과 같다.
 - [ ] 사용자 리뷰 후 머지
 
 ## PR 5. 나머지 프로젝트 2개와 다이어그램 다시 그리기
