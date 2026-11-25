@@ -1,6 +1,18 @@
-@import '@fontsource-variable/instrument-sans/wght.css';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+
+/*
+ * Instrument Sans, latin subset only. U+00B7 is left out of the range on purpose:
+ * its middle dot is 1.75px wide at 17px and vanishes between words, so Pretendard draws it.
+ */
+@font-face {
+	font-family: 'Instrument Sans';
+	font-style: normal;
+	font-display: swap;
+	font-weight: 400 700;
+	src: url('@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2') format('woff2-variations');
+	unicode-range: U+0000-00B6, U+00B8-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 :root {
 	--ink: #111110;
@@ -11,7 +23,7 @@
 	--dot: rgb(17 17 16 / 0.09);
 
 	/* Instrument Sans has no Hangul, so Pretendard draws every Korean glyph. */
-	--font-sans: 'Instrument Sans Variable', 'Pretendard Variable', system-ui, sans-serif;
+	--font-sans: 'Instrument Sans', 'Pretendard Variable', system-ui, sans-serif;
 	/* Latin labels only: a monospace space between Hangul words reads as a gap. */
 	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 

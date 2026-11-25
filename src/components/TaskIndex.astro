@@ -1,0 +1,91 @@
+---
+import type { TaskGroup } from '../utils/project';
+
+interface Props {
+	groups: TaskGroup[];
+}
+
+const { groups } = Astro.props;
+let number = 0;
+---
+
+<nav class="task-index" aria-label="과제 목차">
+	<p class="head label"><span>Areas</span><span>Tasks</span></p>
+	<ol class="areas">
+		{
+			groups.map(({ area, tasks }) => (
+				<li>
+					<a class="area" href={`#${area.slug}`}>
+						{area.text}
+						<span class="count">{tasks.length}</span>
+					</a>
+					<ol class="tasks">
+						{tasks.map((task) => (
+							<li>
+								<a href={`#${task.slug}`}>
+									<span class="num">{String(++number).padStart(2, '0')}</span>
+									<span class="title">{task.text}</span>
+								</a>
+							</li>
+						))}
+					</ol>
+				</li>
+			))
+		}
+	</ol>
+</nav>
+
+<style>
+	.head {
+		display: flex;
+		justify-content: space-between;
+		padding-bottom: 12px;
+		border-bottom: 1px solid var(--line);
+	}
+	ol {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.areas {
+		display: grid;
+		gap: 20px;
+		margin-top: 20px;
+	}
+	.area {
+		display: flex;
+		justify-content: space-between;
+		gap: 12px;
+		font-size: 16px;
+	}
+	.count {
+		font-family: var(--font-mono);
+		font-size: var(--text-meta);
+		color: var(--muted);
+	}
+	.tasks {
+		display: grid;
+		gap: 8px;
+		margin-top: 10px;
+	}
+	.tasks a {
+		display: grid;
+		grid-template-columns: 24px 1fr;
+		font-size: var(--text-meta);
+		line-height: 1.45;
+		color: var(--muted);
+	}
+	.num {
+		font-family: var(--font-mono);
+	}
+	.title {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+	}
+	a:hover,
+	a:hover .count {
+		color: var(--ink);
+	}
+</style>
