@@ -145,19 +145,19 @@ const groups = taskGroups(headings);
 		line-height: 1.35;
 		letter-spacing: -0.02em;
 	}
-	.prose :global(ul) {
+	.prose > :global(ul) {
 		display: grid;
 		gap: 10px;
 		margin: 20px 0 0;
 		padding: 0;
 		list-style: none;
 	}
-	.prose :global(li) {
+	.prose > :global(ul > li) {
 		position: relative;
 		padding-left: 22px;
 		color: var(--ink-2);
 	}
-	.prose :global(li)::before {
+	.prose > :global(ul > li)::before {
 		content: '';
 		position: absolute;
 		left: 2px;
@@ -166,10 +166,10 @@ const groups = taskGroups(headings);
 		height: 6px;
 		border: 1px solid var(--ink);
 	}
-	.prose :global(li:has(> strong)) {
+	.prose > :global(ul > li:has(> strong)) {
 		color: var(--ink);
 	}
-	.prose :global(li:has(> strong))::before {
+	.prose > :global(ul > li:has(> strong))::before {
 		background: var(--ink);
 	}
 	.prose :global(strong) {

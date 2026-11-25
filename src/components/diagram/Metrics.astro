@@ -1,0 +1,42 @@
+---
+interface Props {
+	items: { label: string; value: string }[];
+}
+
+const { items } = Astro.props;
+---
+
+<dl class="metrics">
+	{
+		items.map(({ label, value }) => (
+			<div>
+				<dt>{label}</dt>
+				<dd>{value}</dd>
+			</div>
+		))
+	}
+</dl>
+
+<style>
+	.metrics {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 12px;
+		margin: 0;
+	}
+	.metrics div {
+		padding: 12px 14px;
+		border-top: 3px solid var(--ink);
+		background: rgb(17 17 16 / 0.04);
+	}
+	dt {
+		font-size: 13px;
+		color: var(--muted);
+	}
+	dd {
+		margin: 4px 0 0;
+		font-size: 22px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
+</style>

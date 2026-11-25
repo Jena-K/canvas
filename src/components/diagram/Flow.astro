@@ -1,0 +1,109 @@
+---
+type Step = string | { label: string; sub?: string; outline?: boolean };
+
+interface Props {
+	steps: Step[];
+	label?: string;
+	plain?: boolean;
+}
+
+const { steps, label, plain = false } = Astro.props;
+const nodes = steps.map((step) => (typeof step === 'string' ? { label: step } : step));
+---
+
+<div class:list={['flow', { plain }]}>
+	{label && <p class="flow-label">{label}</p>}
+	<ol>
+		{
+			nodes.map((node) => (
+				<li class:list={['node', { outline: node.outline }]}>
+					<span>{node.label}</span>
+					{node.sub && <small>{node.sub}</small>}
+				</li>
+			))
+		}
+	</ol>
+</div>
+
+<style>
+	/* The flow turns vertical when its own box is narrow: inside a lane or on a phone. */
+	.flow {
+		container-type: inline-size;
+	}
+	.flow-label {
+		margin-bottom: 8px;
+		font-size: 13px;
+		color: var(--muted);
+	}
+	ol {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: stretch;
+		gap: 12px 30px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.plain ol {
+		gap: 8px;
+	}
+	.node {
+		position: relative;
+		display: grid;
+		align-content: center;
+		gap: 2px;
+		min-height: 40px;
+		padding: 8px 12px;
+		background: var(--ink);
+		color: var(--paper);
+		font-size: 14px;
+		line-height: 1.35;
+	}
+	.node small {
+		font-size: 12px;
+		opacity: 0.75;
+	}
+	.node.outline {
+		background: var(--paper);
+		color: var(--ink);
+		border: 1px dashed var(--ink);
+	}
+	/* Arrow to the next step: an 18px line and a 6px head in the 30px gap. */
+	.flow:not(.plain) .node:not(:last-child)::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: calc(100% + 6px);
+		width: 18px;
+		height: 1px;
+		background: var(--ink);
+	}
+	.flow:not(.plain) .node:not(:last-child)::before {
+		content: '';
+		position: absolute;
+		top: calc(50% - 4px);
+		left: calc(100% + 20px);
+		border: 4px solid transparent;
+		border-left: 6px solid var(--ink);
+	}
+
+	@container (max-width: 480px) {
+		.flow:not(.plain) ol {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 26px;
+		}
+		.flow:not(.plain) .node:not(:last-child)::after {
+			top: calc(100% + 5px);
+			left: 18px;
+			width: 1px;
+			height: 12px;
+		}
+		.flow:not(.plain) .node:not(:last-child)::before {
+			top: calc(100% + 15px);
+			left: 14px;
+			border: 4px solid transparent;
+			border-top: 6px solid var(--ink);
+		}
+	}
+</style>
