@@ -1,0 +1,138 @@
+---
+import Tag from './Tag.astro';
+import { url } from '../utils/url';
+
+const home = url('/');
+const host = new URL(Astro.site!).host;
+
+const sections = [
+	{ label: 'projects', href: url('/#projects') },
+	{ label: 'about', href: url('/#about') },
+	{ label: 'contact', href: url('/#contact') },
+];
+const external = [{ label: 'github', href: 'https://github.com/Jena-K' }];
+---
+
+<header class="site-header">
+	<nav class="tags" aria-label="주요 메뉴">
+		<Tag href={home} prefix="www" label={host} current={Astro.url.pathname === home} />
+		{sections.map((link) => <Tag {...link} />)}
+	</nav>
+	<nav class="tags right" aria-label="외부 링크">
+		{external.map((link) => <Tag {...link} />)}
+	</nav>
+
+	<details class="menu">
+		<summary><b>/</b><span>menu</span></summary>
+		<nav aria-label="모바일 메뉴">
+			{[...sections, ...external].map((link) => <Tag {...link} />)}
+		</nav>
+	</details>
+
+	<a class="brand" href={home}>
+		김용훈
+		<span class="label">Backend Developer</span>
+	</a>
+</header>
+
+<script is:inline>
+	document.querySelector('.menu')?.addEventListener('click', (event) => {
+		if (event.target.closest('a')) event.currentTarget.removeAttribute('open');
+	});
+</script>
+
+<style>
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 10;
+		display: flex;
+		align-items: flex-start;
+		gap: 16px;
+		padding: 36px var(--pad) 24px;
+		background: inherit;
+	}
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px;
+	}
+	.right {
+		margin-left: auto;
+	}
+	.brand {
+		margin-left: 48px;
+		display: grid;
+		font-size: 22px;
+		font-weight: 600;
+		line-height: 24px;
+		letter-spacing: -0.01em;
+		white-space: nowrap;
+	}
+	.brand .label {
+		font-weight: 400;
+		font-size: 11px;
+		line-height: 16px;
+		letter-spacing: 0.14em;
+	}
+
+	.menu {
+		display: none;
+		position: relative;
+	}
+	summary {
+		display: inline-flex;
+		list-style: none;
+		cursor: pointer;
+		border: 1px solid var(--ink);
+		background: var(--paper);
+		font-family: var(--font-mono);
+		font-size: var(--text-label);
+		line-height: 22px;
+	}
+	summary::-webkit-details-marker {
+		display: none;
+	}
+	summary b {
+		font-weight: 400;
+		background: var(--ink);
+		color: var(--paper);
+		padding: 0 6px;
+	}
+	summary span {
+		padding: 0 8px;
+	}
+	.menu[open] summary span {
+		background: var(--ink);
+		color: var(--paper);
+	}
+	.menu nav {
+		position: absolute;
+		top: calc(100% + 8px);
+		left: 0;
+		display: grid;
+		justify-items: start;
+		gap: 8px;
+		padding: 12px;
+		border: 1px dashed var(--ink);
+		background: var(--paper);
+	}
+
+	@media (max-width: 720px) {
+		.site-header {
+			align-items: center;
+			padding-top: 20px;
+			padding-bottom: 16px;
+		}
+		.tags {
+			display: none;
+		}
+		.menu {
+			display: block;
+		}
+		.brand {
+			margin-left: auto;
+			text-align: right;
+		}
+	}
+</style>
