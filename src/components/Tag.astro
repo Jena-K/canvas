@@ -1,0 +1,47 @@
+---
+interface Props {
+	href: string;
+	label: string;
+	prefix?: string;
+	current?: boolean;
+}
+
+const { href, label, prefix = '/', current = false } = Astro.props;
+const external = /^https?:\/\//.test(href);
+---
+
+<a
+	class="tag"
+	href={href}
+	aria-current={current ? 'page' : undefined}
+	target={external ? '_blank' : undefined}
+	rel={external ? 'noopener' : undefined}
+>
+	<b>{prefix}</b><span>{label}</span>
+</a>
+
+<style>
+	.tag {
+		display: inline-flex;
+		border: 1px solid var(--ink);
+		background: var(--paper);
+		font-family: var(--font-mono);
+		font-size: var(--text-label);
+		line-height: 22px;
+		white-space: nowrap;
+	}
+	b {
+		font-weight: 400;
+		background: var(--ink);
+		color: var(--paper);
+		padding: 0 6px;
+	}
+	span {
+		padding: 0 8px;
+	}
+	.tag:hover span,
+	.tag[aria-current='page'] span {
+		background: var(--ink);
+		color: var(--paper);
+	}
+</style>

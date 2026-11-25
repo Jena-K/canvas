@@ -1,0 +1,24 @@
+---
+import Tag from './Tag.astro';
+---
+
+<footer class="site-footer">
+	<p class="copy">© {new Date().getFullYear()} 김용훈</p>
+	<Tag href="https://github.com/Jena-K" label="github" />
+</footer>
+
+<style>
+	.site-footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		margin-top: 160px;
+		padding: 24px var(--pad) 40px;
+		border-top: 1px solid var(--line);
+	}
+	.copy {
+		font-size: var(--text-meta);
+		color: var(--muted);
+	}
+</style>
