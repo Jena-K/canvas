@@ -59,8 +59,8 @@ PR 0  프로토타입 (머지 없음, 버리는 코드)
 | 0 | 없음 | `.scratch/proto/`만 | 예, 방향 선택 |
 | 1 | 0 | `src/content/blog/`, `src/pages/`, `src/layouts/`, `src/assets/`, `src/consts.ts`, `astro.config.mjs`, `scripts/check-links.mjs`, `package.json` | 아니오 |
 | 2 | 1 | `src/styles/`, `src/components/`, `src/layouts/Base.astro`, `astro.config.mjs`의 `fonts`, `src/assets/fonts/` | 예 |
-| 3 | 2 | `src/content.config.ts`, `src/content/projects/genvas.mdx`, `src/data/profile.ts`, `src/pages/projects/[slug].astro`, `src/components/TaskIndex.astro` | 아니오 |
-| 4 | 3 | `src/pages/index.astro`, `src/components/Hero.astro`, `src/components/ProjectIndex.astro` | 예 |
+| 3 | 2 | `src/content.config.ts`, `src/content/projects/genvas.mdx`, `src/utils/project.ts`, `src/pages/projects/[slug].astro`, `src/components/TaskIndex.astro` | 아니오 |
+| 4 | 3 | `src/pages/index.astro`, `src/components/Hero.astro`, `src/components/ProjectIndex.astro`, `src/data/profile.ts` | 예 |
 | 5 | 3 | `src/content/projects/*.mdx`, `src/components/diagram/` | 예, 그림과 내용 |
 | 6 | 4 | `src/scripts/`, `src/components/Raster.astro`, `src/layouts/Base.astro`, `package.json` | 예 |
 | 7 | 5, 6 | `src/components/BaseHead.astro`, `public/`, 각 컴포넌트의 반응형 스타일 | 아니오 |
@@ -153,36 +153,32 @@ kovalseo의 글꼴은 한글이 없다. 한글 제목이 큰 글씨에서 어떻
 
 데이터 모양을 먼저 정하고, Genvas 하나로 끝까지 통하는지 확인한다.
 
-- [ ] 의존: PR 2
-- [ ] 수정 파일: 위 표의 PR 3 범위
-- [ ] 바꾸는 것
-  - `projects` 컬렉션 스키마. 과제 목록은 frontmatter에 두지 않고 MDX의 `##` 제목에서 뽑는다. 원본이 하나라서 목차와 본문이 어긋나지 않는다.
+- [x] 의존: PR 2
+- [x] 수정 파일: `src/content.config.ts`, `src/content/projects/genvas.mdx`, `src/utils/project.ts`, `src/pages/projects/[slug].astro`, `src/components/TaskIndex.astro`, `src/styles/global.css`
+- [x] 바꾸는 것
+  - `projects` 컬렉션 스키마. 필드는 `title`, `tagline`, `summary`, `company`, `role`, `period`(`YYYY-MM`), `stack`, `order`다.
+  - 과제 구조는 원문을 따른다. 처음 계획한 문제·원인·해결·결과 네 칸은 버렸다. `sections/05_projects.md`의 과제마다 네 칸이 다 있지 않아서, 네 칸을 채우려면 원문에 없는 문장을 지어내야 하기 때문이다.
+    - `##` 영역(원문의 `✅ 기여 — 영역`)
+    - `###` 과제(원문의 번호 항목, 문장 그대로)
+    - bullet은 원문 그대로 옮긴다. 굵은 글씨가 든 bullet은 결과로 보고 검은 네모 표시를 붙인다.
+  - 목차는 frontmatter에 두지 않고 `render()`가 돌려주는 `headings`에서 `taskGroups()`로 뽑는다. 원본이 하나라서 목차와 본문이 어긋나지 않는다.
+  - 원문의 `<!-- ev: -->` 근거는 MDX 주석 `{/* ev: ... */}`로 같은 자리에 옮겼다.
+  - `src/pages/projects/[slug].astro`: 히어로(칩, 모노 한 줄, 큰 제목, 오른쪽 요약), 회사·역할·기간·스택 줄, 왼쪽 본문, 오른쪽 고정 과제 목차(rulebook의 카테고리 목록 패턴). 960px 이하에서는 목차가 본문 위로 올라간다.
+  - `src/data/profile.ts`는 쓰는 곳이 생기는 PR 4로 옮겼다.
+  - 가운뎃점 수정: Instrument Sans의 `·`는 17px에서 폭 1.75px이라 앞뒤 글자에 붙어 보였다(측정). `global.css`에 Instrument Sans의 `@font-face`를 직접 두고 unicode-range에서 U+00B7을 빼서 Pretendard(4.32px)가 그리게 했다. 수정 뒤 렌더링 폭은 3.56px이다.
+- [x] 보이는 결과: `/canvas/projects/genvas/`가 열리고, 목차 항목을 누르면 해당 과제로 이동한다.
+- [x] 검증
+  - [x] 단위: 세 명령 통과(내부 링크 29개). `period.start`를 `2025.08`로 바꾸면 YAML이 숫자로 읽어 `InvalidContentEntryDataError`로 빌드가 실패한다.
+  - [x] 실물: 영역 3개와 과제 6개가 `##` 3개, `###` 6개와 같다. 결과 bullet은 6개다. 목차의 04번을 누르면 주소에 과제 id가 붙고 제목이 헤더 바로 아래(y=100, 헤더 아래 끝 100)에 온다. 1512 폭과 390 폭 모두 콘솔 오류 0개, 가로 넘침 없음. 캡처는 `.scratch/verify/pr-3/`에 있다.
+  - [x] 성능: Lighthouse 12, Genvas 상세
 
-    ```ts
-    const projects = defineCollection({
-    	loader: glob({ base: './src/content/projects', pattern: '*.mdx' }),
-    	schema: ({ image }) => z.object({
-    		title: z.string(),
-    		tagline: z.string(),
-    		company: z.string(),
-    		period: z.object({ start: z.string().regex(/^\d{4}-\d{2}$/), end: z.string().regex(/^\d{4}-\d{2}$/).nullable() }),
-    		role: z.string(),
-    		stack: z.array(z.string()).min(1),
-    		order: z.number().int(),
-    		cover: image().optional(),
-    	}),
-    });
-    ```
-  - 과제 하나는 `## 과제 제목` 아래 `### 문제`, `### 원인`, `### 해결`, `### 결과` 순서다.
-  - 각 문장 옆에 resume 저장소의 근거를 MDX 주석 `{/* ev: ... */}`로 남긴다. 근거는 `sections/05_projects.md`의 `<!-- ev: -->`를 그대로 옮긴다.
-  - `src/data/profile.ts`: 이름, 한 줄 소개, 경력 목록, 기술 목록, 연락처. 원본은 `sections/00_profile.md`, `02_experience.md`, `03_technical_skills.md`다.
-  - `src/pages/projects/[slug].astro`: 왼쪽 본문, 오른쪽 고정 과제 목차(rulebook의 카테고리 목록 패턴)
-- [ ] 보이는 결과: `/canvas/projects/genvas/`가 열리고, 목차 항목을 누르면 해당 과제로 이동한다.
-- [ ] 검증
-  - [ ] 단위: 세 명령 통과. `period.start`를 `2025.08`로 바꾸면 빌드가 실패하는지 확인한다.
-  - [ ] 실물: 목차 항목 수가 MDX의 `##` 수와 같다. 목차를 누르면 주소에 `#과제-id`가 붙고 그 제목이 고정 헤더 아래에 보인다.
-  - [ ] 성능: 상세 페이지 JS 0 KB
-  - [ ] 내용: Genvas MDX의 모든 주장이 `sections/05_projects.md`에 있다. `writing_guide_sample/`에서 온 문장이 없다.
+    | 프리셋 | 성능 | 접근성 | JS | 글꼴 | 전체 | LCP | CLS |
+    | --- | --- | --- | --- | --- | --- | --- | --- |
+    | 데스크톱 | 100 | 100 | 0 B | 455.5 KB, 18개 | 478.2 KB | 0.8 s | 0 |
+    | 모바일 기본 | 100 | 100 | 0 B | 455.5 KB, 18개 | 478.2 KB | 1.4 s | 0.034 |
+
+    글꼴의 대부분은 Pretendard 조각 16개다. 점수에는 영향이 없지만 PR 7에서 줄일 수 있는지 본다.
+  - [x] 내용: Genvas MDX의 모든 문장이 `sections/05_projects.md`의 Genvas 항목과 같다. `writing_guide_sample/`에서 온 문장이 없다.
 
 ## PR 4. 홈
 
@@ -193,7 +189,8 @@ kovalseo의 글꼴은 한글이 없다. 한글 제목이 큰 글씨에서 어떻
 - [ ] 바꾸는 것
   - `Hero.astro`: 검은 칩(`BACKEND`) + 모노 대문자 한 줄 + 큰 제목 한 줄 + 오른쪽 열 요약 3줄. 문구는 `sections/00_profile.md`의 포지셔닝에서 가져온다.
   - `ProjectIndex.astro`: 프로젝트를 `order` 순서로 나열한다. 각 행에 이름, 한 줄 소개, 기간, 과제 개수를 보인다. 과제 개수는 PR 3의 제목 추출 결과에서 센다.
-  - 경력 요약, 기술, 연락처 구역. 연락처는 이메일과 GitHub만 싣는다. `00_profile.md`의 전화번호는 공개 사이트에 넣지 않는다.
+  - `src/data/profile.ts`: 이름, 한 줄 소개, 자기소개, 경력 목록, 기술 목록, 이메일, GitHub. 원본은 `sections/00_profile.md`, `02_experience.md`, `03_technical_skills.md`다.
+  - 경력 요약, 기술, 연락처 구역. 연락처는 이메일과 GitHub만 싣는다(사용자 결정, 2026-11-25). `00_profile.md`의 전화번호는 공개 사이트에 넣지 않는다.
 - [ ] 보이는 결과: 홈 첫 화면에 히어로가, 스크롤하면 프로젝트 목록과 경력이 보인다.
 - [ ] 검증
   - [ ] 단위: 세 명령 통과
