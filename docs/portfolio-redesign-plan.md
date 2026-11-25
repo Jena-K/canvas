@@ -24,7 +24,7 @@ Awwwards 기록은 Nominee(2026-11-19), 제작 Koval Web · Specia1ne, 기술 GS
 | 스크롤 레일 | 오른쪽 끝 세로 진행 표시 | 프로젝트 상세 |
 | 목차 + 개수 | rulebook 페이지의 고정 카테고리 목록과 규칙 개수 | 프로젝트 목록, 프로젝트 상세의 과제 목차 |
 | 점선 박스 다이어그램 | 점선 테두리, 검은 라벨 칸 | 과제 설명 안의 작은 도식 |
-| 전환 | 고정 헤더 아래 페이지 전환, 스크롤에 따라 바뀌는 그림 | PR 6 |
+| 전환 | 고정 헤더 아래 페이지 전환. 스크롤에 따라 그림이 바뀌는 연출은 우리 그림이 정적 도식이라 넣지 않는다 | PR 6 |
 
 ## 결정이 필요한 것
 
@@ -62,7 +62,7 @@ PR 0  프로토타입 (머지 없음, 버리는 코드)
 | 3 | 2 | `src/content.config.ts`, `src/content/projects/genvas.mdx`, `src/utils/project.ts`, `src/pages/projects/[slug].astro`, `src/components/TaskIndex.astro` | 아니오 |
 | 4 | 3 | `src/pages/index.astro`, `src/components/Hero.astro`, `src/components/ProjectIndex.astro`, `src/data/profile.ts`, `src/styles/global.css` | 예 |
 | 5 | 3 | `src/content/projects/*.mdx`, `src/components/diagram/`, `src/pages/projects/[slug].astro` | 예, 그림과 내용 |
-| 6 | 4 | `src/scripts/`, `src/components/Raster.astro`, `src/layouts/Base.astro`, `package.json` | 예 |
+| 6 | 4 | `src/scripts/`, `src/components/Raster.astro`, `TaskIndex.astro`, `src/layouts/Base.astro`, `src/pages/`, `global.css` (의존성 추가 없음) | 예 |
 | 7 | 5, 6 | `src/components/BaseHead.astro`, `public/`, 각 컴포넌트의 반응형 스타일 | 아니오 |
 | 8 | 1 | `astro.config.mjs`, GitHub 저장소 이름 | 예, 외부 변경 |
 
@@ -238,20 +238,22 @@ PR 3에서 정한 모양에 내용을 채우고, 프로젝트 상세 페이지�
 
 정적 페이지가 완성된 뒤에 움직임을 얹는다. 움직임이 없어도 모든 내용이 보여야 한다.
 
-- [ ] 의존: PR 4
-- [ ] 수정 파일: 위 표의 PR 6 범위
-- [ ] 바꾸는 것
-  - 의존성: `gsap`(ScrollTrigger 포함). 부드러운 스크롤(`lenis`)은 PR 0 프로토타입에서 체감을 보고 넣을지 정한다.
-  - `Raster.astro`: 히어로 아래 문구를 캔버스에 점으로 그린다. 직접 구현한다. kovalseo의 번들을 복사하지 않는다.
-  - 스크롤 등장 효과: 구역 제목과 프로젝트 행
-  - 페이지 전환: Astro `<ClientRouter />`, 헤더는 전환 중에도 고정
-  - 프로젝트 상세의 오른쪽 스크롤 레일
-  - `prefers-reduced-motion: reduce`이면 모든 모션을 끄고 래스터는 정적 글자로 대체한다.
-- [ ] 보이는 결과: 스크롤하면 요소가 차례로 나타나고, 페이지를 옮겨도 헤더가 깜빡이지 않는다.
-- [ ] 검증
-  - [ ] 단위: 세 명령 통과
-  - [ ] 실물: 홈 → Genvas → 홈으로 이동하며 녹화한다. 헤더 위치가 바뀌지 않는다. CDP로 reduced motion을 켜고 다시 열면 래스터 대신 글자가 보이고 모든 내용이 처음부터 보인다.
-  - [ ] 성능: 홈 JS 전송량을 기록한다. gzip 기준 60 KB를 넘으면 실패. Lighthouse 성능 점수가 PR 1 기준보다 10점 넘게 떨어지면 실패.
+- [x] 의존: PR 4
+- [x] 수정 파일: `src/scripts/reveal.ts`, `src/components/Raster.astro`, `src/components/TaskIndex.astro`, `src/layouts/Base.astro`, `src/pages/index.astro`, `src/pages/projects/[slug].astro`, `src/styles/global.css`
+- [x] 바꾸는 것
+  - 계획 조정: GSAP와 Lenis를 넣지 않았다. 네 효과 모두 브라우저 기본 기능으로 만들 수 있고, GSAP와 ScrollTrigger만으로 gzip 약 45 KB(추정)가 늘기 때문이다. Lenis는 스크롤을 가로채 키보드와 보조기기 사용을 해친다.
+  - 스크롤 등장(`reveal.ts`): 구역 제목, 프로젝트 행, 경력, 기술, 그림, 본문 제목. 첫 화면 아래에 있는 요소만 숨겼다가 IntersectionObserver로 보인다. 히어로는 숨기지 않아 LCP를 늦추지 않는다. 스크립트가 없으면 아무것도 숨지 않는다.
+  - 점 래스터(`Raster.astro`): 홈 히어로 아래에 `BACKEND`를 배경과 같은 격자(데스크톱 4px, 390 폭 3px)의 2px 검은 점으로 그린다. 처음 보일 때 점이 0.9초에 걸쳐 무작위 순서로 찍힌다. 장식이라 `aria-hidden`이고, 띠 높이를 CSS로 미리 잡아 레이아웃이 밀리지 않는다. 계획의 "한글 문구"는 새 문장을 만들어야 해서 라틴 단어 하나로 바꿨다.
+  - 페이지 전환: `<ClientRouter />` 대신 CSS `@view-transition`(JS 0 B). 헤더는 `view-transition-name`으로 전환에서 빠져 제자리에 있고, 아래 본문만 0.25초 교차 페이드한다.
+  - 진행 레일: 프로젝트 상세 오른쪽 1px 선이 스크롤 위치에 따라 채워진다. CSS 스크롤 연동 애니메이션만 쓴다. 961px 미만과 미지원 브라우저에서는 숨긴다.
+  - 과제 목차 추적: 지금 읽는 과제의 번호가 검은 사각형(결과 글머리표와 같은 표시)으로 바뀌고 `aria-current="location"`이 붙는다. 페이지 끝에서는 헤더까지 올라오지 못하는 마지막 과제가 선택된다.
+  - `prefers-reduced-motion: reduce`이면 등장, 전환, 레일, 점 찍기 애니메이션을 모두 끈다. 래스터는 움직임 없이 완성된 상태로 그린다(장식 그림이라 글자로 바꾸지 않았다).
+  - 버그 수정: CSS 압축기가 `animation-timeline`을 `animation` 단축 속성 안으로 합쳤고, Chrome이 그 선언을 통째로 버려 레일이 채워지지 않았다. `animation-timeline`을 별도 규칙으로 분리했다.
+- [x] 보이는 결과: 스크롤하면 요소가 차례로 나타나고, 페이지를 옮겨도 헤더가 깜빡이지 않는다.
+- [x] 검증
+  - [x] 단위: 세 명령 통과(내부 링크 78개)
+  - [x] 실물: 1512 폭 홈에서 처음 숨는 요소 18개, 끝까지 스크롤한 뒤 0개. 래스터 캔버스에 칠해진 픽셀 31,520개(390 폭 16,656개, 글자 판독 가능). Genvas 상세에서 스크롤 0 · 1500 · 끝 위치의 레일 채움 0 · 0.39 · 1, 목차 표시는 없음 · 02번 · 06번. 상세에서 헤더 링크로 홈에 돌아와도 헤더 위치는 0px 그대로. CDP로 reduced motion을 켜면 `data-reveal` 요소 0개, 투명한 요소 0개, 래스터는 완성 상태. 두 폭 모두 가로 넘침 없음, 콘솔 오류 0개. 캡처는 `.scratch/verify/pr-6/`에 있다.
+  - [x] 성능: 홈 JS 1.1 KB, 상세 JS 0.6 KB(gzip, 인라인 모듈). 상한 60 KB 안. Lighthouse 12 데스크톱은 홈 100, Genvas 99, 접근성 모두 100, CLS 0. 모바일 기본 프리셋은 같은 날 같은 기계에서 `main`(PR 5 머지본)과 이 브랜치를 번갈아 두 번씩 쟀고 둘 다 90~91, LCP 3.4~3.5 s로 같았다. 모션 때문에 떨어진 점수는 없다.
 - [ ] 사용자 리뷰 후 머지
 
 ## PR 7. 모바일, 접근성, SEO, 성능 마무리
@@ -263,6 +265,7 @@ PR 3에서 정한 모양에 내용을 채우고, 프로젝트 상세 페이지�
   - 키보드만으로 모든 링크에 도달하고 포커스가 보이게 한다.
   - 페이지마다 제목, 설명, OG 이미지를 둔다. 사이트맵은 기존 `@astrojs/sitemap`을 그대로 쓴다.
   - 이력서 PDF 링크를 `public/`에 둘지, 외부 링크로 둘지 정해 연결한다.
+  - 모바일 LCP를 되돌린다. PR 4 기록은 홈 모바일 LCP 1.4 s, 성능 100이었는데 2026-11-25에 `main`을 다시 재니 LCP 3.4 s, 성능 90이었다. PR 6 측정 중에 발견했고 원인은 아직 모른다. 배경 점 무늬 교체와 측정 환경 차이를 먼저 의심한다(추정).
 - [ ] 보이는 결과: 휴대폰에서 모든 페이지를 가로 스크롤 없이 읽는다. 링크 공유 미리보기에 제목과 이미지가 나온다.
 - [ ] 검증
   - [ ] 단위: 세 명령 통과
@@ -283,5 +286,3 @@ PR 3에서 정한 모양에 내용을 채우고, 프로젝트 상세 페이지�
 ## 아직 증명되지 않은 것
 
 - 한글 제목이 kovalseo의 굵은 라틴 제목만큼 단단해 보일지는 PR 0 전까지 모른다.
-- 점 래스터 한글은 390 폭처럼 글자가 작아질 때 뭉개지는지 아직 보지 않았다. PR 6에서 확인한다.
-- PR 6의 JS 60 KB 상한은 추정이다. GSAP와 ScrollTrigger만으로 gzip 약 45 KB가 나갈 것으로 본다(추정).
