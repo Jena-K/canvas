@@ -125,20 +125,28 @@ kovalseo의 글꼴은 한글이 없다. 한글 제목이 큰 글씨에서 어떻
 
 움직임 없이 정적인 뼈대만 만든다. 이후 모든 페이지가 이 레이아웃을 쓴다.
 
-- [ ] 의존: PR 1
-- [ ] 수정 파일: 위 표의 PR 2 범위
+- [x] 의존: PR 1
+- [x] 수정 파일: `src/styles/global.css`, `src/components/Tag.astro`, `Header.astro`, `Footer.astro`, `src/layouts/Base.astro`, `src/pages/index.astro`, `package.json`
 - [ ] 바꾸는 것
-  - `src/styles/tokens.css`: 색(`--ink`, `--ink-2`, `--muted`, `--paper`), 점 격자 바탕, 글꼴 변수, 12열 그리드, 간격 단위
-  - 글꼴: 변형 D. `font-family: "Instrument Sans", "Pretendard"` 순서로 두어 라틴은 Instrument Sans, 한글은 Pretendard가 그린다. 라벨은 IBM Plex Mono. 셋 다 OFL이고 Astro `fonts` 설정으로 직접 호스팅한다. Pretendard는 서브셋 woff2를 쓴다.
-  - `Header.astro`: 슬래시 태그 내비게이션(`/ projects`, `/ about`, `/ contact`, 오른쪽에 `/ github`, `/ resume.pdf`)
-  - 390 폭에서는 헤더 태그를 `/ menu` 버튼 하나로 접는다. PR 0에서 태그 6개가 세 줄을 차지했다.
+  - `src/styles/global.css`: 색(`--ink`, `--ink-2`, `--muted`, `--paper`), 점 격자 바탕, 글꼴 변수, 글자 크기 단계, 여백 단위. 파일을 따로 두지 않고 BaseHead가 이미 불러오는 `global.css`에 둔다. 12열 그리드는 쓰는 곳이 생기는 PR 4에서 정한다.
+  - 글꼴: 변형 D. `font-family: "Instrument Sans Variable", "Pretendard Variable"` 순서로 두어 라틴은 Instrument Sans, 한글은 Pretendard가 그린다. 라벨은 IBM Plex Mono. 셋 다 OFL이다. Astro `fonts` 설정 대신 npm 패키지(`@fontsource-variable/instrument-sans`, `@fontsource/ibm-plex-mono`, `pretendard`)의 CSS를 import해 Vite가 직접 호스팅한다. Fontsource의 Pretendard는 라틴 서브셋만 있어서, 한글을 92개 조각으로 나눈 `pretendard` 패키지의 dynamic subset CSS를 쓴다.
+  - `Header.astro`: 슬래시 태그 내비게이션(`/ projects`, `/ about`, `/ contact`, 오른쪽에 `/ github`). `/ resume.pdf`는 PDF 위치를 정하는 PR 7에서 넣는다. `/ projects` 등은 PR 4에서 생길 홈 구역 앵커라 그 전까지는 이동할 곳이 없다.
+  - 390 폭에서는 헤더 태그를 `/ menu` 버튼 하나로 접는다. JS 번들 없이 `<details>`로 만들고, 링크를 누르면 닫는 인라인 스크립트 한 줄만 둔다. PR 0에서 태그 6개가 세 줄을 차지했다.
   - 모노 글꼴은 라틴 라벨에만 쓴다. 한글 라벨은 본문 글꼴로 쓰고 자간을 넓히지 않는다. PR 0에서 모노 글꼴 안의 한글 단어 사이가 벌어졌다.
-  - `Footer.astro`, `Base.astro` 레이아웃, `Tag.astro`(검은 칸 + 흰 칸 태그 버튼)
+  - `Footer.astro`, `Base.astro` 레이아웃, `Tag.astro`(검은 칸 + 흰 칸 태그 버튼). 푸터의 연락처는 이메일 공개 여부를 정하는 PR 4에서 넣고, 지금은 GitHub만 둔다.
 - [ ] 보이는 결과: 홈에 헤더, 빈 본문, 푸터가 레퍼런스와 같은 비율로 보인다.
-- [ ] 검증
-  - [ ] 단위: 세 명령 통과
-  - [ ] 실물: 1512 폭에서 헤더 태그 사이 간격과 왼쪽 여백이 kovalseo 캡처 `01-hero.png`와 8px 안에서 맞는다. 390 폭에서 헤더가 한 줄을 넘지 않는다.
-  - [ ] 성능: 홈 JS 0 KB 유지, 글꼴 전송량 합계를 기록한다.
+- [x] 검증
+  - [x] 단위: 세 명령 통과(`astro check` 오류 0, 내부 링크 14개 정상)
+  - [x] 실물: 1512 폭에서 첫 태그가 x=80, y=36, 높이 24로 kovalseo 캡처와 같고, 태그 간격은 15~17px로 레퍼런스의 16px과 1px 안에서 맞는다. 390 폭에서 헤더는 `/ menu`와 이름 한 줄(높이 76px)이다. 메뉴를 열면 링크 4개가 보이고, 링크를 누르면 메뉴가 닫히며 주소에 `#projects`가 붙는다. Tab 두 번이면 `/projects`에 실선 포커스 테두리가 보인다. 콘솔 오류 0개, 가로 넘침 없음. 캡처는 `.scratch/verify/pr-2/`에 있다.
+  - [x] 성능: Lighthouse 12, 홈
+
+    | 측정 | 성능 | 접근성 | JS | 글꼴 | 전체 | LCP |
+    | --- | --- | --- | --- | --- | --- | --- |
+    | PR 1 (데스크톱) | 100 | 100 | 0 B | 0 B | 3.0 KB | |
+    | PR 2 (데스크톱) | 100 | 100 | 0 B | 156.3 KB, 6개 | 176.1 KB | 0.5 s |
+    | PR 2 (모바일 기본 프리셋) | 100 | 100 | 0 B | 156.3 KB, 6개 | 176.1 KB | 1.3 s |
+
+    글꼴 내역은 IBM Plex Mono 14.7 KB, Instrument Sans 29.7 KB, Pretendard 조각 4개 108.3 KB다. 한글 약 20자에 Pretendard 조각 4개를 받는다. 본문이 늘어나는 PR 4에서 다시 잰다.
 - [ ] 사용자 리뷰 후 머지
 
 ## PR 3. 콘텐츠 모델과 프로젝트 상세 1개
