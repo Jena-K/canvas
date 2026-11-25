@@ -61,7 +61,7 @@ PR 0  프로토타입 (머지 없음, 버리는 코드)
 | 2 | 1 | `src/styles/`, `src/components/`, `src/layouts/Base.astro`, `astro.config.mjs`의 `fonts`, `src/assets/fonts/` | 예 |
 | 3 | 2 | `src/content.config.ts`, `src/content/projects/genvas.mdx`, `src/utils/project.ts`, `src/pages/projects/[slug].astro`, `src/components/TaskIndex.astro` | 아니오 |
 | 4 | 3 | `src/pages/index.astro`, `src/components/Hero.astro`, `src/components/ProjectIndex.astro`, `src/data/profile.ts`, `src/styles/global.css` | 예 |
-| 5 | 3 | `src/content/projects/*.mdx`, `src/components/diagram/` | 예, 그림과 내용 |
+| 5 | 3 | `src/content/projects/*.mdx`, `src/components/diagram/`, `src/pages/projects/[slug].astro` | 예, 그림과 내용 |
 | 6 | 4 | `src/scripts/`, `src/components/Raster.astro`, `src/layouts/Base.astro`, `package.json` | 예 |
 | 7 | 5, 6 | `src/components/BaseHead.astro`, `public/`, 각 컴포넌트의 반응형 스타일 | 아니오 |
 | 8 | 1 | `astro.config.mjs`, GitHub 저장소 이름 | 예, 외부 변경 |
@@ -201,32 +201,37 @@ kovalseo의 글꼴은 한글이 없다. 한글 제목이 큰 글씨에서 어떻
 ## PR 5. 나머지 프로젝트 2개와 다이어그램 다시 그리기
 
 PR 3에서 정한 모양에 내용을 채우고, 프로젝트 상세 페이지에 다이어그램을 넣는다.
-다이어그램은 resume 저장소의 PNG를 그대로 쓰지 않는다. 사이트의 디자인 패턴으로 다시 그린다(사용자 결정, 2026-11-25).
+다이어그램은 resume 저장소의 PNG를 그대로 쓰지 않고 사이트의 디자인 패턴으로 다시 그린다(사용자 결정, 2026-11-25).
 
-- [ ] 의존: PR 3
-- [ ] 수정 파일: `src/content/projects/tynt.mdx`, `ai-agent-workflow.mdx`, `genvas.mdx`(그림 삽입), `src/components/diagram/`
-- [ ] 바꾸는 것
-  - 프로젝트 2개를 PR 3과 같은 구조로 쓴다.
-  - 다이어그램 컴포넌트를 `src/components/diagram/`에 만든다. 도형은 레퍼런스의 문법만 쓴다. 검은 라벨 칸, 점선 박스, 모노 글꼴 라벨, 직각 연결선, 먹색 한 가지 색이다. 원본의 프로젝트별 강조색, 둥근 카드, 아이콘은 쓰지 않는다.
-  - 다이어그램은 HTML과 inline SVG로 그린다. 이미지가 아니라서 글자를 검색하고 복사할 수 있고, 화면 폭에 맞춰 다시 배치된다.
-  - 다시 그릴 그림과 내용 근거는 다음과 같다. 근거 파일은 모두 `resume/resume_build/diagrams/`에 있다.
+- [x] 의존: PR 3
+- [x] 수정 파일: `src/content/projects/tynt.mdx`, `ai-agent-workflow.mdx`, `genvas.mdx`(그림 삽입), `src/components/diagram/`, `src/pages/projects/[slug].astro`(본문 목록 스타일 범위)
+- [x] 바꾸는 것
+  - Tynt(과제 4개)와 AI Agent(과제 5개)를 PR 3과 같은 구조로 옮겼다. 두 프로젝트 모두 원문에 영역 구분이 없어 `##` 영역을 "기여" 하나로 둔다.
+  - 다이어그램 부품 4개를 `src/components/diagram/`에 만들었다.
+    - `Figure`: 점선 테두리, `FIG nn` 칩, 한글 제목
+    - `Flow`: 검은 상자(주 흐름)나 점선 상자(기록·결과)를 화살표로 잇는다. `plain`이면 화살표 없이 나열한다. 흐름이 놓인 칸이 480px보다 좁으면 컨테이너 쿼리로 세로 흐름이 된다.
+    - `Lanes`: 나란한 레인. 각 레인 안은 `Flow`다.
+    - `Metrics`: 결과 수치 칸
+  - 그림은 HTML과 CSS로만 그렸다. SVG와 JS는 쓰지 않았다. 원본의 강조색, 둥근 카드, 아이콘은 쓰지 않았다.
+  - 그림은 MDX 안에서 부품을 조합해 근거 문장 바로 아래에 둔다. 그림 문구는 모두 `sections/05_projects.md`의 해당 과제 문장에서 가져왔다.
+  - 계획 조정: 원본 `fig_02b`(생성 요청 데이터 흐름)에는 CQRS, 202 응답, 읽기 모델처럼 `sections/`에 없는 내용이 많다. 그래서 통째로 다시 그리지 않고, `sections/` 문장으로 그릴 수 있는 범위를 과제별 그림으로 나눴다.
 
-    | 프로젝트 상세 | 그림 | 내용 근거 |
+    | 상세 페이지 | 그림 | 놓인 과제 |
     | --- | --- | --- |
-    | Genvas | 생성 요청의 데이터 흐름. 동기 커밋, 비동기 워커, 콜백, 읽기 모델 | `fig_02b_*`, `_design/fig_02b_genvas_renewal_dataflow.md` |
-    | Genvas | 다단계 생성 파이프라인. 마네킹부터 얼굴보정까지 | `fig_02_genvas_pipeline.html` |
-    | Genvas | 학습과 생성 큐 분리, 오케스트레이터와 분산 워커 | `fig_06b_*`, `_design/fig_06b_simba_queue_dataflow.md` |
-    | Genvas | 결제 시도와 불변 완료 기록 | `fig_02b_*` 하단 결제 흐름 |
-    | AI Agent | 계획, 구현 위임, 리뷰 루프와 hook 게이트 | `fig_04b_*`, `_design/fig_04b_ai_orchestration_dataflow.md` |
+    | Genvas | FIG 01 생성 단계 격리와 단계별 기록 | 다단계 생성 |
+    | Genvas | FIG 02 외부 생성 모델 호출 추상화 | 테마별 설정과 공통 Celery 어댑터 |
+    | Genvas | FIG 03 학습·생성 큐 분리 | 큐 라우팅 |
+    | Genvas | FIG 04 과금 순서와 결제 기록 분리 | 결제 시도와 불변 완료 기록 |
+    | AI Agent | FIG 01 오케스트레이터 루프와 시점별 hook 게이트 | 단일 오케스트레이터 |
 
-  - Tynt는 근거가 되는 흐름도가 없어 그림을 넣지 않는다. 에너닷 그림(`fig_01*`)은 에너닷 프로젝트 항목이 `sections/`에 생긴 뒤에 다룬다.
-  - 그림 속 문구는 `sections/05_projects.md`에 있는 내용만 쓴다. 코드 식별자(`celery_task_logs`, `{queue}_{env}`, 내부 서비스명 등)는 일반 명칭으로 바꾼다. 원본 README의 공개 전 체크 규칙을 따른 것이다.
-- [ ] 보이는 결과: 홈 목록의 세 행이 모두 상세로 이어진다. Genvas 상세에 그림 4장, AI Agent 상세에 그림 1장이 해당 과제 바로 아래에 보인다.
-- [ ] 검증
-  - [ ] 단위: 세 명령 통과
-  - [ ] 실물: 세 상세 페이지를 차례로 열어 목차 수와 `##` 수가 같은지 확인한다. 1512 폭과 390 폭에서 그림을 캡처한다. 390 폭에서 그림이 가로로 넘치지 않고 세로로 다시 배치된다.
-  - [ ] 성능: 그림을 넣은 뒤에도 상세 페이지 JS 0 KB
-  - [ ] 내용: 그림의 모든 문구가 `sections/05_projects.md`에 있다. 원본 README가 "본인 확정 후 공개"로 표시한 수치(생성 실패율 약 10%→1%대, AWS 비용 약 70% 절감)는 `sections/`에 이미 있다. 그래도 공개 전에 사용자가 한 번 더 확인한다.
+  - Tynt는 근거가 되는 흐름도가 없어 그림이 없다. 에너닷 그림은 `sections/`에 에너닷 프로젝트 항목이 생긴 뒤에 다룬다.
+  - 버그 수정: 상세 페이지의 본문 목록 스타일(`.prose li`)이 그림 안의 `<li>`에도 걸려 검은 상자 글자가 회색이 됐다. 본문 바로 아래 목록(`.prose > ul > li`)에만 걸리게 좁혔다.
+- [x] 보이는 결과: 홈 목록의 세 행이 모두 상세로 이어진다. Genvas 상세에 그림 4장, AI Agent 상세에 그림 1장이 해당 과제 바로 아래에 보인다.
+- [x] 검증
+  - [x] 단위: 세 명령 통과(페이지 4개, 내부 링크 59개)
+  - [x] 실물: 세 상세 페이지의 목차 과제 수가 `###` 수와 같다(6, 4, 5). 1512 폭과 390 폭에서 그림의 가로 넘침이 모두 0px이고, 390 폭에서는 흐름이 세로 화살표로 바뀐다. 검은 상자 글자색은 흰색(`rgb(255, 255, 255)`)이다. 콘솔 오류 0개. 캡처는 `.scratch/verify/pr-5/`에 있다.
+  - [x] 성능: Lighthouse 12 모바일 기본 프리셋. Genvas 상세는 성능 100, 접근성 100, JS 0 B, 전체 479.5 KB(PR 3 때 478.2 KB). AI Agent 상세는 성능 100, 접근성 100, JS 0 B, 전체 352.4 KB.
+  - [ ] 내용: 사용자가 세 프로젝트 문장과 그림 5장을 확인한다. 원본 README가 "본인 확정 후 공개"로 표시한 수치(생성 실패율 약 10%→1%대, AWS 비용 약 70% 절감)도 함께 확인한다.
 - [ ] 사용자 리뷰 후 머지
 
 ## PR 6. 모션
