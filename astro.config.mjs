@@ -7,7 +7,6 @@ import { defineConfig } from 'astro/config';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://jena-k.github.io',
-	base: '/canvas',
 	integrations: [mdx(), sitemap()],
 	// Inline the CSS so fonts are discovered with the HTML instead of one request later.
 	build: { inlineStylesheets: 'always' },
