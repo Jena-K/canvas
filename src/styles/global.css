@@ -5,6 +5,18 @@
  * Instrument Sans, latin subset only. U+00B7 is left out of the range on purpose:
  * its middle dot is 1.75px wide at 17px and vanishes between words, so Pretendard draws it.
  */
+/*
+ * Pretendard cut down to the characters the site uses (scripts/subset-font.py), one 100 KB file.
+ * The dynamic subset above stays as a fallback: it only downloads a chunk for a character this file lacks.
+ */
+@font-face {
+	font-family: 'Pretendard Subset';
+	font-style: normal;
+	font-display: swap;
+	font-weight: 45 920;
+	src: url('/fonts/pretendard-subset.woff2') format('woff2-variations');
+}
+
 @font-face {
 	font-family: 'Instrument Sans';
 	font-style: normal;
@@ -24,7 +36,7 @@
 	--dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' fill='%23e7e7e7'/%3E%3C/svg%3E");
 
 	/* Instrument Sans has no Hangul, so Pretendard draws every Korean glyph. */
-	--font-sans: 'Instrument Sans', 'Pretendard Variable', system-ui, sans-serif;
+	--font-sans: 'Instrument Sans', 'Pretendard Subset', 'Pretendard Variable', system-ui, sans-serif;
 	/* Latin labels only: a monospace space between Hangul words reads as a gap. */
 	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
@@ -93,6 +105,24 @@ p {
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
 	color: var(--muted);
+}
+
+.skip {
+	position: absolute;
+	top: 12px;
+	left: var(--pad);
+	/* Above the sticky header (z-index 10), which comes later in the DOM. */
+	z-index: 11;
+	padding: 8px 14px;
+	background: var(--ink);
+	color: var(--paper);
+	transform: translateY(-200%);
+}
+.skip:focus-visible {
+	transform: none;
+}
+main:focus {
+	outline: none;
 }
 
 .sr-only {

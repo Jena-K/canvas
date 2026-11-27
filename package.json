@@ -11,7 +11,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
-    "check:links": "node scripts/check-links.mjs"
+    "check:links": "node scripts/check-links.mjs",
+    "check:font": "node scripts/check-font.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.1.6",
