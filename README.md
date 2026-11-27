@@ -1,6 +1,6 @@
 # canvas
 
-김용훈 포트폴리오 사이트. Astro 정적 사이트이고, `main`에 머지하면 GitHub Pages(https://jena-k.github.io/canvas/)로 배포된다.
+김용훈 포트폴리오 사이트. Astro 정적 사이트이고, `main`에 머지하면 GitHub Pages(https://jena-k.github.io/)로 배포된다.
 
 작업 계획과 기록은 `docs/portfolio-redesign-plan.md`에 있다.
 
@@ -8,7 +8,7 @@
 
 | 명령 | 하는 일 |
 | --- | --- |
-| `pnpm dev` | 개발 서버 (`localhost:4321/canvas/`) |
+| `pnpm dev` | 개발 서버 (`localhost:4321/`) |
 | `pnpm build` | `dist/`에 빌드 |
 | `pnpm preview` | 빌드 결과 미리보기 |
 | `pnpm check` | 타입 검사 |
