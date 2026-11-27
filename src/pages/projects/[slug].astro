@@ -17,7 +17,7 @@ const { Content, headings } = await render(project);
 const groups = taskGroups(headings);
 ---
 
-<Base title={`${title} · ${tagline} | 김용훈`} description={summary}>
+<Base title={`${title} · ${tagline} | 김용훈`} description={summary} image={`/og/${project.id}.png`}>
 	<div class="rail" aria-hidden="true"><span></span></div>
 	<section class="hero">
 		<div>

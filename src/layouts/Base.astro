@@ -7,19 +7,22 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 interface Props {
 	title?: string;
 	description?: string;
+	/** Share preview under public/, drawn by scripts/og-images.py. */
+	image?: string;
 }
 
-const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
+const { title = SITE_TITLE, description = SITE_DESCRIPTION, image = '/og/home.png' } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="ko">
 	<head>
-		<BaseHead title={title} description={description} />
+		<BaseHead title={title} description={description} image={image} />
 	</head>
 	<body>
+		<a class="skip" href="#main">본문으로 건너뛰기</a>
 		<Header />
-		<main>
+		<main id="main" tabindex="-1">
 			<slot />
 		</main>
 		<Footer />
