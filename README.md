@@ -1,63 +1,31 @@
-# Astro Starter Kit: Blog
+# canvas
 
-```sh
-pnpm create astro@latest -- --template blog
-```
+김용훈 포트폴리오 사이트. Astro 정적 사이트이고, `main`에 머지하면 GitHub Pages(https://jena-k.github.io/canvas/)로 배포된다.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+작업 계획과 기록은 `docs/portfolio-redesign-plan.md`에 있다.
 
-Features:
+## 명령
 
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and Open Graph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
+| 명령 | 하는 일 |
+| --- | --- |
+| `pnpm dev` | 개발 서버 (`localhost:4321/canvas/`) |
+| `pnpm build` | `dist/`에 빌드 |
+| `pnpm preview` | 빌드 결과 미리보기 |
+| `pnpm check` | 타입 검사 |
+| `pnpm check:links` | 빌드된 페이지의 내부 링크 검사 |
+| `pnpm check:font` | 빌드된 페이지의 글자가 모두 Pretendard 부분 집합에 있는지 검사 |
 
-## 🚀 Project Structure
+## 문구를 고친 뒤
 
-Inside of your Astro project, you'll see the following folders and files:
+한국어 문구나 프로젝트 제목·소개를 바꾸면 아래 두 스크립트를 다시 돌리고 결과 파일을 함께 커밋한다.
 
-```text
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── content/
-│   ├── layouts/
-│   └── pages/
-├── astro.config.mjs
-├── README.md
-├── package.json
-└── tsconfig.json
-```
+| 바꾼 것 | 명령 | 만드는 파일 |
+| --- | --- | --- |
+| 한국어 문구 | `uv run --with fonttools --with brotli python scripts/subset-font.py` | `public/fonts/pretendard-subset.*` |
+| 프로필 제목, 프로젝트 `title`·`tagline` | `uv run --with pillow python scripts/og-images.py` | `public/og/*.png` |
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+`pnpm check:font`가 실패하면 첫 번째 스크립트를 돌리면 된다.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## 내용 원본
 
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
-
-## Credit
-
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+프로젝트 문장은 resume 저장소의 `resume_build/sections/05_projects.md`에서 그대로 옮긴다. 이 저장소에서 문장을 새로 쓰지 않는다.

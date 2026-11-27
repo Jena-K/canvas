@@ -63,7 +63,7 @@ PR 0  프로토타입 (머지 없음, 버리는 코드)
 | 4 | 3 | `src/pages/index.astro`, `src/components/Hero.astro`, `src/components/ProjectIndex.astro`, `src/data/profile.ts`, `src/styles/global.css` | 예 |
 | 5 | 3 | `src/content/projects/*.mdx`, `src/components/diagram/`, `src/pages/projects/[slug].astro` | 예, 그림과 내용 |
 | 6 | 4 | `src/scripts/`, `src/components/Raster.astro`, `TaskIndex.astro`, `src/layouts/Base.astro`, `src/pages/`, `global.css` (의존성 추가 없음) | 예 |
-| 7 | 5, 6 | `src/components/BaseHead.astro`, `public/`, 각 컴포넌트의 반응형 스타일 | 아니오 |
+| 7 | 5, 6 | `src/components/BaseHead.astro`, `public/`, `scripts/`, 각 컴포넌트의 반응형 스타일 | 아니오 |
 | 8 | 1 | `astro.config.mjs`, GitHub 저장소 이름 | 예, 외부 변경 |
 
 PR 4와 PR 5는 서로 다른 파일만 고치므로 동시에 진행할 수 있다.
@@ -259,19 +259,24 @@ PR 3에서 정한 모양에 내용을 채우고, 프로젝트 상세 페이지�
 
 ## PR 7. 모바일, 접근성, SEO, 성능 마무리
 
-- [ ] 의존: PR 5, PR 6
-- [ ] 수정 파일: 위 표의 PR 7 범위
-- [ ] 바꾸는 것
-  - 390 폭 레이아웃을 페이지마다 점검하고 고친다.
-  - 키보드만으로 모든 링크에 도달하고 포커스가 보이게 한다.
-  - 페이지마다 제목, 설명, OG 이미지를 둔다. 사이트맵은 기존 `@astrojs/sitemap`을 그대로 쓴다.
-  - 이력서 PDF 링크를 `public/`에 둘지, 외부 링크로 둘지 정해 연결한다.
-  - 모바일 LCP를 되돌린다. PR 4 기록은 홈 모바일 LCP 1.4 s, 성능 100이었는데 2026-11-25에 `main`을 다시 재니 LCP 3.4 s, 성능 90이었다. PR 6 측정 중에 발견했고 원인은 아직 모른다. 배경 점 무늬 교체와 측정 환경 차이를 먼저 의심한다(추정).
-- [ ] 보이는 결과: 휴대폰에서 모든 페이지를 가로 스크롤 없이 읽는다. 링크 공유 미리보기에 제목과 이미지가 나온다.
-- [ ] 검증
-  - [ ] 단위: 세 명령 통과
-  - [ ] 실물: 390 폭에서 모든 페이지의 `scrollWidth`가 `innerWidth`와 같다. Tab 키로 헤더에서 푸터까지 이동하며 포커스 표시를 캡처한다.
-  - [ ] 성능: 모든 페이지의 Lighthouse 성능 90 이상, 접근성 95 이상
+- [x] 의존: PR 5, PR 6
+- [x] 수정 파일: `astro.config.mjs`, `package.json`(스크립트만), `scripts/subset-font.py`, `scripts/check-font.mjs`, `scripts/og-images.py`, `public/fonts/`, `public/og/`, `src/components/BaseHead.astro`, `src/components/Raster.astro`, `src/layouts/Base.astro`, `src/pages/projects/[slug].astro`, `src/styles/global.css`
+- [x] 바꾸는 것
+  - 측정 정정: PR 6에서 "모바일 LCP가 1.4 s에서 3.4 s로 늘었다"고 적은 것은 잘못이다. PR 4는 실제로 속도를 늦추는 `devtools` 방식, PR 6은 계산으로 추정하는 `simulate` 방식으로 쟀다. 같은 날 두 방식으로 다시 재니 `main`은 `devtools` 100(LCP 1.4 s), `simulate` 90(LCP 3.5 s)이었다. 이후 성능은 두 방식을 모두 적는다.
+  - 원인: `simulate`에서 제목이 그려지기 전 2.9~3.6 s를 기다렸다. 글꼴 파일이 CSS 파일을 받은 뒤에야 발견되고, Genvas 상세는 Pretendard 조각 16개를 포함해 글꼴 18개(455.5 KB)를 받았다.
+  - 글꼴 줄이기: 사이트가 쓰는 글자(한글 368자 포함 475자)만 담은 Pretendard 파일 한 개(102 KB)를 `scripts/subset-font.py`로 만들어 `public/fonts/`에 둔다. 의존성은 늘리지 않고 `uv run --with fonttools`로 돌린다. 기존 동적 조각 CSS는 대체 글꼴로 남겨, 빠진 글자가 생겨도 그 글자가 든 조각만 받는다. 페이지당 글꼴은 3개, 146.7 KB가 됐다.
+  - 빠진 글자 검사: `pnpm check:font`가 빌드된 페이지의 글자가 모두 부분 집합에 있는지 본다. 첫 실행에서 MDX가 만드는 둥근 따옴표(“ ”)를 잡아내 스크립트의 기본 글자에 넣었다. 한국어 문구를 고친 뒤에는 `subset-font.py`를 다시 돌린다.
+  - CSS를 HTML 안에 넣었다(`inlineStylesheets: 'always'`). 글꼴을 HTML과 함께 발견해 `devtools` LCP가 1.4 s에서 0.8 s가 됐다.
+  - 점 래스터의 글꼴 목록에서 `Pretendard Variable`을 뺐다. 라틴 단어만 그리는데도 쓰지 않는 조각(37 KB)을 받고 있었다.
+  - 접근성: 첫 Tab에 "본문으로 건너뛰기" 링크를 둔다. 처음에는 고정 헤더에 가려 보이지 않아 헤더보다 위에 그리게 고쳤다.
+  - 공유 미리보기: `scripts/og-images.py`(Pillow, `uv run --with pillow`)가 프로필 제목과 프로젝트 소개 문구로 1200×630 이미지 4장을 그린다. 사이트에 없는 문장은 넣지 않는다. 페이지마다 `og:image`, `og:url`(정식 주소), `og:locale`, `twitter:*`를 둔다.
+  - 이력서 PDF 링크는 넣지 않았다. 지금 PDF에는 전화번호가 들어 있고, 전화번호는 공개하지 않기로 했다(2026-11-25 사용자 결정). 전화번호를 뺀 PDF가 생기면 다시 정한다.
+- [x] 보이는 결과: 휴대폰에서 모든 페이지를 가로 스크롤 없이 읽는다. 링크 공유 미리보기에 제목과 이미지가 나온다.
+- [x] 검증
+  - [x] 단위: `check`, `build`, `check:links`(내부 링크 82개, OG 이미지 포함), `check:font`(4페이지) 통과
+  - [x] 실물: 390 폭과 1512 폭에서 네 페이지 모두 `scrollWidth`가 `innerWidth`와 같다. Tab으로 보이는 모든 링크에 닿고(390 폭 10~19개, 1512 폭 14~26개), 모든 정지점에 포커스 테두리가 화면 안에 보인다. 390 폭 메뉴는 Enter로 열고 Tab으로 링크 4개를 지나며, 링크를 고르면 닫히고 해당 구역이 헤더 아래(y=100)에 온다. 캡처는 `.scratch/verify/pr-7/`에 있다.
+  - [x] 성능: Lighthouse 12 모바일, 네 페이지 모두 `simulate` 성능 99(LCP 2.0 s), `devtools` 성능 100(LCP 0.8 s). 접근성, SEO, 권장사항 모두 100. 페이지 전체 170~173 KB(Genvas 상세는 479.5 KB였다).
+- [ ] 사용자 리뷰 후 머지
 
 ## PR 8. 루트 주소로 이전 (선택)
 
