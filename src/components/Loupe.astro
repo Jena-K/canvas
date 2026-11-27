@@ -1,0 +1,202 @@
+---
+/*
+ * A loupe that follows the mouse over the page background (technique read from kovalseo.com).
+ * Around the cursor the 4px grid of 1px dots turns into an 8px grid of 2px dots. The lens edge
+ * is not a circle: each 8px cell is kept or dropped by ordered (Bayer) dithering of a radial
+ * falloff, so it dissolves into the grid. Fine pointers only; hidden for reduced motion and print.
+ */
+---
+
+<svg class="loupe" aria-hidden="true" focusable="false">
+	<defs>
+		<pattern id="loupe-coarse" width="8" height="8" patternUnits="userSpaceOnUse">
+			<rect width="2" height="2" fill="#e7e7e7" shape-rendering="crispEdges"></rect>
+		</pattern>
+		<clipPath id="loupe-lens">
+			<path></path>
+		</clipPath>
+	</defs>
+	<g clip-path="url(#loupe-lens)">
+		<rect width="100%" height="100%" fill="var(--paper)"></rect>
+		<rect width="100%" height="100%" fill="url(#loupe-coarse)"></rect>
+	</g>
+</svg>
+
+<style>
+	.loupe {
+		--reach: clamp(90px, calc(90px + (100vw - 390px) * 0.0794), 120px);
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: -1;
+		display: block;
+		width: calc(2 * var(--reach) + 32px);
+		height: calc(2 * var(--reach) + 32px);
+		pointer-events: none;
+		opacity: 0;
+		will-change: transform;
+		contain: layout paint style;
+	}
+	.loupe.is-on {
+		opacity: 1;
+	}
+	@media (min-width: 1024px) {
+		.loupe {
+			--reach: clamp(120px, calc(120px + (100vw - 1024px) * 0.09375), 144px);
+		}
+	}
+	@media (prefers-reduced-motion: reduce), print {
+		.loupe {
+			display: none;
+		}
+	}
+</style>
+
+<script>
+	const CELL = 8;
+
+	// Lens strength by distance / reach: full in the middle, gone at the rim.
+	const FALLOFF: [number, number][] = [
+		[0, 1], [0.12, 0.97], [0.24, 0.88], [0.36, 0.72], [0.48, 0.52],
+		[0.6, 0.32], [0.72, 0.16], [0.84, 0.06], [1, 0],
+	];
+
+	// 8x8 Bayer matrix: thresholds 0..63 spread so any strength level is evenly sparse.
+	const BAYER = [
+		[0, 32, 8, 40, 2, 34, 10, 42],
+		[48, 16, 56, 24, 50, 18, 58, 26],
+		[12, 44, 4, 36, 14, 46, 6, 38],
+		[60, 28, 52, 20, 62, 30, 54, 22],
+		[3, 35, 11, 43, 1, 33, 9, 41],
+		[51, 19, 59, 27, 49, 17, 57, 25],
+		[15, 47, 7, 39, 13, 45, 5, 37],
+		[63, 31, 55, 23, 61, 29, 53, 21],
+	];
+
+	const mod8 = (n: number) => ((Math.round(n) % 8) + 8) % 8;
+
+	function strength(t: number): number {
+		if (t >= 1) return 0;
+		for (let i = 1; i < FALLOFF.length; i++) {
+			const [x1, y1] = FALLOFF[i];
+			if (t <= x1) {
+				const [x0, y0] = FALLOFF[i - 1];
+				return y0 + ((t - x0) / (x1 - x0)) * (y1 - y0);
+			}
+		}
+		return 0;
+	}
+
+	/*
+	 * Lens outline around (0, 0) as runs of whole cells. The phase shifts the Bayer lookup by the
+	 * cursor's cell, so the dither stays fixed to the page grid instead of riding with the mouse.
+	 */
+	function lensPath(reach: number, phaseX: number, phaseY: number): string {
+		const span = Math.ceil(reach / CELL);
+		let d = '';
+		for (let row = -span; row < span; row++) {
+			let runStart: number | null = null;
+			for (let col = -span; col <= span; col++) {
+				const cx = col * CELL + CELL / 2;
+				const cy = row * CELL + CELL / 2;
+				const threshold = (BAYER[mod8(row + phaseY)][mod8(col + phaseX)] + 0.5) / 64;
+				const keep = col < span && strength(Math.hypot(cx, cy) / reach) > threshold;
+				if (keep && runStart === null) runStart = col;
+				if (!keep && runStart !== null) {
+					const w = (col - runStart) * CELL;
+					d += `M${runStart * CELL} ${row * CELL}h${w}v${CELL}h${-w}z`;
+					runStart = null;
+				}
+			}
+		}
+		return d;
+	}
+
+	const svg = document.querySelector<SVGSVGElement>('svg.loupe');
+	const lens = svg?.querySelector<SVGPathElement>('#loupe-lens path');
+
+	if (svg && lens) {
+		const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
+		const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+		const enabled = () => finePointer.matches && !reducedMotion.matches;
+
+		let active = enabled();
+		let reach = 0;
+		let half = 0;
+		let paths = new Map<number, string>();
+		let x = 0;
+		let y = 0;
+		let looking = false;
+		let queued = false;
+		let drawnKey = -1;
+
+		const measure = () => {
+			// The box is 2 * --reach + 32px wide; a custom property reads back unresolved, so measure.
+			const width = svg.getBoundingClientRect().width;
+			reach = Math.round((width - 32) / 2 / CELL) * CELL;
+			half = Math.round(width / 2 / CELL) * CELL;
+			paths = new Map();
+			drawnKey = -1;
+		};
+
+		const draw = () => {
+			queued = false;
+			svg.classList.toggle('is-on', looking);
+			if (!looking) return;
+			const phaseX = mod8(x / CELL);
+			const phaseY = mod8(y / CELL);
+			const key = phaseY * 8 + phaseX;
+			if (key !== drawnKey) {
+				let d = paths.get(key);
+				if (d === undefined) {
+					d = lensPath(reach, phaseX, phaseY);
+					paths.set(key, d);
+				}
+				lens.setAttribute('d', d);
+				lens.setAttribute('transform', `translate(${half} ${half})`);
+				drawnKey = key;
+			}
+			svg.style.transform = `translate3d(${x - half}px, ${y - half}px, 0)`;
+		};
+
+		const schedule = () => {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(draw);
+		};
+
+		const hide = () => {
+			looking = false;
+			schedule();
+		};
+
+		addEventListener(
+			'pointermove',
+			(event) => {
+				if (!active || event.pointerType !== 'mouse') return;
+				// Snap to the 8px grid so the coarse dots land on the background's 4px dots.
+				const nx = Math.round(event.clientX / CELL) * CELL;
+				const ny = Math.round(event.clientY / CELL) * CELL;
+				if (nx === x && ny === y && looking) return;
+				x = nx;
+				y = ny;
+				looking = true;
+				schedule();
+			},
+			{ passive: true },
+		);
+		document.documentElement.addEventListener('pointerleave', hide);
+		document.addEventListener('mouseleave', hide);
+		addEventListener('blur', hide);
+		addEventListener('resize', () => active && measure(), { passive: true });
+
+		const sync = () => {
+			active = enabled();
+			if (active) measure();
+			else hide();
+		};
+		finePointer.addEventListener('change', sync);
+		reducedMotion.addEventListener('change', sync);
+		if (active) measure();
+	}
+</script>
