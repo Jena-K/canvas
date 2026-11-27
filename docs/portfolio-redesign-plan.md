@@ -284,11 +284,11 @@ PR 3에서 정한 모양에 내용을 채우고, 프로젝트 상세 페이지�
 - [x] 바꾸는 것: GitHub 저장소 이름을 `canvas`에서 `jena-k.github.io`로 바꾸고, `astro.config.mjs`에서 `base`를 지운다. `url()` 도우미 덕분에 코드 변경은 이 한 줄과 주석뿐이다.
   - 옛 주소 `/canvas/`는 새 사이트에서 404가 된다. GitHub Pages는 저장소 이름이 바뀌어도 옛 Pages 주소를 넘겨주지 않는다. resume 저장소와 구직 사이트 기록에 `/canvas/` 링크가 없어 넘김 페이지는 만들지 않았다.
   - 로컬 폴더 `~/projects/rowan/canvas/`는 그대로 둔다. `git remote`만 새 이름으로 바꾼다.
-- [ ] 보이는 결과: `jena-k.github.io/`에서 사이트가 열린다.
-- [ ] 검증
+- [x] 보이는 결과: `jena-k.github.io/`에서 사이트가 열린다.
+- [x] 검증
   - [x] 단위: 네 명령 통과(내부 링크 82개). 빌드 결과에 `/canvas` 경로가 남지 않았다.
-  - [ ] 실물: 새 주소에서 모든 페이지와 이미지가 열린다. 옛 주소 `/canvas/`가 어디로 가는지 기록한다.
-  - [ ] 성능: 변화 없음
+  - [x] 실물(2026-11-27): 저장소 이름 변경 직후 머지, 배포 성공(`efb3a68`). 새 주소의 네 페이지, OG 이미지, 글꼴, 사이트맵 모두 200. 옛 주소 `/canvas/`와 `/canvas/projects/genvas/`는 404. 브라우저에서 글꼴 3개(IBM Plex Mono, Pretendard Subset, Instrument Sans) 로드, 홈의 첫 프로젝트를 누르면 `/projects/genvas/`로 가고 그림 4장과 레일이 보인다. 로컬 `git remote`는 `Jena-K/jena-k.github.io`로 바꿨다.
+  - [x] 성능: 실제 배포본(압축 전송)에 Lighthouse 12 모바일 `simulate`. 홈 99(LCP 1.8 s), Genvas 100(LCP 1.2 s), 접근성 · SEO · 권장사항 100. 두 페이지 모두 전체 172 KB.
 - [x] 사용자 승인 후 진행(2026-11-27)
 
 ## 아직 증명되지 않은 것
